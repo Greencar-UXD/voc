@@ -12,13 +12,15 @@ voc-dashboard/
 ├── data.js             ← 모든 수치 (window.VOC_DATA) — 집계 수치만, 원문 금지
 ├── lib/chart.umd.js    ← Chart.js v4 로컬 사본 (CDN 금지, 오프라인 실행 보장)
 ├── rules/classification-rules.md  ← 분류 룰셋 (버전 2026-06-10)
+├── rules/labeled-examples.md      ← 분류 골드 예시집 (학습 자산, 비식별)
+├── rules/decision-log.md          ← 분류 결정 로그 + 일치율 추적 (학습 자산)
 ├── deploy.sh           ← GitHub Pages 배포/갱신 스크립트
 └── README.md           ← 이 파일
 ```
 
 ## 갱신 절차 (새 기간 처리)
 
-1. **새 기간 엑셀을 Claude에 전달** → `rules/classification-rules.md`의 룰로 분류한다.
+1. **새 기간 엑셀을 Claude에 전달** → `rules/classification-rules.md` 룰 + `rules/labeled-examples.md` 예시로 분류한다. 애매한 새 경계 케이스는 `rules/decision-log.md`에 기록하고, 노션 확정치와의 불일치 건수를 일치율 표에 남긴다(학습 누적).
 2. **검증 확정 후** `data.js`의 해당 월 엔트리만 갱신한다.
 3. **`index.html` 새로고침**으로 로컬 확인. 끝.
 4. (배포 중인 경우) **commit → push**하면 공유 링크에 1~2분 내 자동 반영:
