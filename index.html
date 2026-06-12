@@ -8,144 +8,242 @@
 <script src="data.js"></script>
 <style>
   :root {
-    --fact: #1d4ed8;   --fact-bg: #dbeafe;
-    --infer: #c2410c;  --infer-bg: #ffedd5;
-    --check: #4b5563;  --check-bg: #e5e7eb;
-    --regime-past5: #9ca3af;
-    --regime-excerpt: #f97316;
-    --regime-full: #2563eb;
-    --ink: #1f2937; --ink-soft: #6b7280;
-    --line: #e5e7eb; --card: #ffffff; --bg: #f5f6f8;
+    /* 미니멀·중성 팔레트 */
+    --bg: #f6f7f8;
+    --card: #ffffff;
+    --line: #ececef;
+    --line-2: #f1f2f4;
+    --ink: #1a1d21;
+    --ink-2: #5c626b;
+    --ink-3: #9298a1;
+    --accent: #3f4654;
+    /* 배지 (절제된 채도) */
+    --fact: #1e4fd6;   --fact-bg: #eef2fe;
+    --infer: #b4540a;  --infer-bg: #fbf0e6;
+    --check: #5b626c;  --check-bg: #eef0f2;
+    --up: #c0531f;     --down: #1e63c4;
+    /* 수집 구간 색 */
+    --r-past5: #aab0b8;
+    --r-excerpt: #e8893f;
+    --r-full: #3f6bd6;
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
     margin: 0; background: var(--bg); color: var(--ink);
     font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", -apple-system, sans-serif;
-    font-size: 14px; line-height: 1.65;
+    font-size: 14px; line-height: 1.6; -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 80px; }
-  h1 { font-size: 24px; margin: 0 0 4px; }
-  h2 { font-size: 18px; margin: 0 0 4px; }
-  .sub { color: var(--ink-soft); font-size: 13px; margin-bottom: 20px; }
-  section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; margin-bottom: 22px; }
-  .section-note { color: var(--ink-soft); font-size: 12.5px; margin: 2px 0 14px; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 22px 88px; }
 
-  /* 배지 */
-  .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; margin-right: 6px; vertical-align: middle; white-space: nowrap; }
+  /* ── 상단 헤더 ── */
+  header.top { padding: 30px 0 14px; }
+  header.top h1 { font-size: 22px; margin: 0 0 5px; letter-spacing: -0.4px; }
+  header.top .sub { color: var(--ink-3); font-size: 12.5px; }
+
+  /* ── 스티키 네비 ── */
+  nav.toc {
+    position: sticky; top: 0; z-index: 30;
+    background: rgba(246,247,248,0.85); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    display: flex; gap: 4px; overflow-x: auto; padding: 8px 0; margin-bottom: 22px;
+  }
+  nav.toc a {
+    flex: 0 0 auto; font-size: 12.5px; color: var(--ink-2); text-decoration: none;
+    padding: 5px 11px; border-radius: 7px; white-space: nowrap;
+  }
+  nav.toc a:hover { background: #eceef1; color: var(--ink); }
+
+  section { scroll-margin-top: 58px; margin-bottom: 30px; }
+  .s-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .s-head h2 { font-size: 16px; margin: 0; letter-spacing: -0.3px; }
+  .s-head .h-meta { font-size: 12px; color: var(--ink-3); }
+  .s-note { color: var(--ink-3); font-size: 12px; margin: 0 0 14px; }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+
+  /* ── 헤더 KPI 카드 ── */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 15px 17px; }
+  .kpi .k { font-size: 11.5px; color: var(--ink-3); margin-bottom: 6px; }
+  .kpi .v { font-size: 26px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+  .kpi .v small { font-size: 14px; font-weight: 700; }
+  .kpi .e { font-size: 11px; color: var(--ink-3); margin-top: 7px; }
+  .kpi.warn { background: #fdf8f1; border-color: #f0dcc2; }
+  .kpi.warn .k { color: #b4540a; font-weight: 700; }
+  .kpi.warn .v { font-size: 14px; font-weight: 700; color: #8a4408; line-height: 1.4; }
+
+  /* ── 배지 ── */
+  .badge { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 5px; margin-right: 5px; vertical-align: middle; white-space: nowrap; }
   .badge.fact  { color: var(--fact);  background: var(--fact-bg); }
   .badge.infer { color: var(--infer); background: var(--infer-bg); }
   .badge.check { color: var(--check); background: var(--check-bg); }
-  .badge.warn  { color: #b91c1c; background: #fee2e2; }
-  .badge.dept  { color: #6d28d9; background: #ede9fe; }
-  .badge.tier  { color: #065f46; background: #d1fae5; }
+  .badge.dept  { color: #6741b8; background: #f0ecfa; }
 
-  /* 헤더 카드 */
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
-  .card .k { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
-  .card .v { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
-  .card .e { font-size: 11.5px; color: var(--ink-soft); margin-top: 3px; }
-  .card.warn-card { border-color: #fca5a5; background: #fff7f7; }
-  .card.warn-card .v { font-size: 15px; font-weight: 700; color: #b91c1c; line-height: 1.5; }
+  /* ── 카테고리 칩 (번호는 작게, 이름이 주인공) ── */
+  .cat-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 700; color: #fff;
+    padding: 2px 8px 2px 6px; border-radius: 999px; white-space: nowrap;
+    background: var(--cc, #888);
+  }
+  .cat-pill .dot { display:none; }
+  .cat-name { font-weight: 700; letter-spacing: -0.2px; }
 
-  .chart-box { position: relative; height: 380px; }
-  .chart-box.tall { height: 420px; }
-  .legend-note { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--ink-soft); margin-top: 10px; }
-  .legend-note .sw { display: inline-block; width: 22px; height: 4px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
-  .callout { border-left: 4px solid var(--infer); background: #fffbeb; padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 13px; margin-top: 12px; }
-  .callout.blue { border-left-color: var(--fact); background: #eff6ff; }
+  .chart-box { position: relative; height: 360px; }
+  .chart-box.tall { height: 430px; }
+  .legend-note { display: flex; flex-wrap: wrap; gap: 14px; font-size: 11.5px; color: var(--ink-3); margin-top: 12px; }
+  .legend-note .sw { display: inline-block; width: 20px; height: 4px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+  .callout { border-left: 3px solid var(--infer); background: #fdf8f1; padding: 9px 13px; border-radius: 0 8px 8px 0; font-size: 12.5px; color: var(--ink-2); margin-top: 12px; }
+  .callout.blue { border-left-color: var(--fact); background: #f1f5fe; }
 
-  table { border-collapse: collapse; width: 100%; font-size: 13px; }
-  th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: right; white-space: nowrap; }
-  th { background: #f9fafb; font-weight: 700; color: #374151; }
-  th:first-child, td:first-child { text-align: left; white-space: normal; }
-  td.up { color: #b91c1c; font-weight: 600; }
-  td.down { color: #1d4ed8; font-weight: 600; }
+  /* ── 표 ── */
   .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  th, td { border-bottom: 1px solid var(--line-2); padding: 8px 10px; text-align: right; white-space: nowrap; }
+  th { background: #fafbfc; font-weight: 700; color: var(--ink-2); font-size: 11.5px; }
+  th:first-child, td:first-child { text-align: left; white-space: normal; }
+  td.up { color: var(--up); font-weight: 700; }
+  td.down { color: var(--down); font-weight: 700; }
+  .tbl-cap { font-size: 12.5px; font-weight: 700; margin: 0 0 8px; color: var(--ink); }
+  .ev { color: var(--ink-3); font-size: 10.5px; font-weight: 400; }
 
-  /* 인사이트 카드 */
-  .insight { border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin-bottom: 16px; background: #fcfcfd; }
-  .insight h3 { font-size: 15.5px; margin: 0 0 10px; }
-  .insight .block { margin-bottom: 10px; }
-  .insight .block-title { font-size: 12px; font-weight: 700; color: var(--ink-soft); margin-bottom: 3px; letter-spacing: 0.02em; }
-  .insight ul { margin: 2px 0 0; padding-left: 18px; }
-  .insight li { margin-bottom: 3px; }
-  .lvl { display: inline-block; font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 4px; background: #eef2ff; color: #3730a3; margin-right: 6px; }
-  .insight .dept-line { background: #f5f3ff; border-radius: 8px; padding: 8px 12px; font-size: 13px; }
+  /* ── 인사이트 접이식 카드 ── */
+  .toolbar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+  .toolbar button { font: inherit; font-size: 12px; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 5px 12px; cursor: pointer; }
+  .toolbar button:hover { background: #f0f1f3; }
 
-  footer { color: var(--ink-soft); font-size: 12px; margin-top: 30px; text-align: center; }
+  details.insight { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 9px; overflow: hidden; }
+  details.insight + details.insight { margin-top: 0; }
+  details.insight > summary {
+    list-style: none; cursor: pointer; padding: 13px 16px;
+    display: flex; align-items: center; gap: 11px; flex-wrap: wrap;
+  }
+  details.insight > summary::-webkit-details-marker { display: none; }
+  details.insight > summary:hover { background: #fafbfc; }
+  .sum-name { font-weight: 700; font-size: 14.5px; letter-spacing: -0.3px; }
+  .sum-right { margin-left: auto; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .sum-stat { font-size: 12px; color: var(--ink-2); }
+  .sum-stat b { color: var(--ink); font-weight: 800; }
+  .sum-trend { font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .sum-trend .arr { font-weight: 800; margin-left: 3px; }
+  .sum-trend .arr.up { color: var(--up); }
+  .sum-trend .arr.down { color: var(--down); }
+  .sum-prio { font-size: 11px; font-weight: 700; color: #3a6a44; background: #e9f4ec; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .chev { width: 15px; height: 15px; color: var(--ink-3); transition: transform .18s ease; flex: 0 0 auto; }
+  details.insight[open] .chev { transform: rotate(180deg); }
+
+  .i-body { padding: 4px 16px 18px; border-top: 1px solid var(--line-2); }
+  .i-block { margin-top: 13px; }
+  .i-block .bt { font-size: 11px; font-weight: 700; color: var(--ink-3); margin-bottom: 4px; letter-spacing: 0.03em; }
+  .i-body ul { margin: 0; padding-left: 17px; }
+  .i-body li { margin-bottom: 4px; color: var(--ink-2); }
+  .i-body li b, .i-body li strong { color: var(--ink); }
+  .lvl { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 0 6px; border-radius: 5px; background: #eef0f9; color: #3b4a86; margin-right: 6px; }
+  .dept-line { background: #f6f3fc; border-radius: 8px; padding: 8px 12px; font-size: 12.5px; color: var(--ink-2); }
+  .i-rat { font-size: 12.5px; color: var(--ink-2); }
+
+  details.plain { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 0; }
+  details.plain > summary { list-style: none; cursor: pointer; padding: 14px 18px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+  details.plain > summary::-webkit-details-marker { display: none; }
+  details.plain[open] > summary { border-bottom: 1px solid var(--line-2); }
+  details.plain .p-body { padding: 6px 18px 16px; }
+  details.plain ul { margin: 8px 0 0; padding-left: 18px; }
+  details.plain li { margin-bottom: 7px; color: var(--ink-2); }
+
+  footer { color: var(--ink-3); font-size: 11.5px; margin-top: 34px; text-align: center; }
+
+  @media (max-width: 620px) {
+    .sum-right { width: 100%; margin-left: 0; }
+    .kpi .v { font-size: 22px; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <h1>G car VOC 월별 추이 대시보드</h1>
-  <div class="sub" id="meta-sub"></div>
+  <header class="top">
+    <h1>G car VOC 월별 추이 대시보드</h1>
+    <div class="sub" id="meta-sub"></div>
+  </header>
 
-  <!-- 1. 헤더 카드 -->
-  <div class="cards" id="header-cards" style="margin-bottom:22px"></div>
+  <nav class="toc">
+    <a href="#sec-trend">월별 추이</a>
+    <a href="#sec-stack">카테고리 구성</a>
+    <a href="#sec-cum">누적 분포</a>
+    <a href="#sec-compare">월간 비교</a>
+    <a href="#sec-insight">개선 인사이트</a>
+    <a href="#sec-bundle">반납 묶음</a>
+    <a href="#sec-limit">데이터 한계</a>
+  </nav>
 
-  <!-- 2. 월별 추이 라인 차트 -->
-  <section>
-    <h2>월별 VOC 추이 (19개월, 월 단위)</h2>
-    <p class="section-note">수집 기준 3구간을 색으로 구분. 구간 경계(점선)를 넘는 전월 대비 비교는 하지 않는다.</p>
-    <div class="chart-box"><canvas id="trendChart"></canvas></div>
-    <div class="legend-note" id="trend-legend"></div>
-    <div class="callout">
-      <span class="badge fact">사실</span>2026년 4월의 급증(157 → 465)은 <strong>집계 방식 변화(발췌 → 전수)</strong>이지 실제 발생 급증이 아니다.
-      <br><span class="badge fact">사실</span>2026년 6월은 <strong>9일치 진행 중</strong>인 부분 월 — 비교는 일평균 환산으로만 수행.
+  <!-- KPI -->
+  <div class="kpis" id="kpis" style="margin-bottom:30px"></div>
+
+  <!-- 월별 추이 -->
+  <section id="sec-trend">
+    <div class="s-head"><h2>월별 VOC 추이</h2><span class="h-meta">19개월 · 월 단위</span></div>
+    <p class="s-note">수집 기준 3구간을 배경색으로 구분. 구간 경계(점선)를 넘는 전월 대비 비교는 하지 않습니다.</p>
+    <div class="panel">
+      <div class="chart-box"><canvas id="trendChart"></canvas></div>
+      <div class="legend-note" id="trend-legend"></div>
+      <div class="callout">
+        <span class="badge fact">사실</span>2026년 4월 급증(157 → 465)은 <b>집계 방식 변화(발췌→전수)</b>이지 실제 발생 급증이 아닙니다.
+        2026년 6월은 <b>9일치 진행 중</b>이라 비교는 일평균 환산만.
+      </div>
     </div>
   </section>
 
-  <!-- 3. 월별 카테고리 구성 스택 바 -->
-  <section>
-    <h2>월별 카테고리 구성 (스택 바)</h2>
-    <p class="section-note">
-      과거 1년 구간(2024.12~2025.11)은 앱 관련 5개 유형만 수집된 4개 카테고리 스택,
-      발췌 구간(2025.12~2026.03)은 Top 3 + 기타(미상, 회색) 스택,
-      전수 구간(2026.04~)은 10개 카테고리 전체 스택.
-    </p>
-    <div class="chart-box tall"><canvas id="stackChart"></canvas></div>
+  <!-- 카테고리 구성 -->
+  <section id="sec-stack">
+    <div class="s-head"><h2>월별 카테고리 구성</h2><span class="h-meta">스택 바</span></div>
+    <p class="s-note">과거 1년(4유형) · 발췌(Top 3 + 기타 미상) · 전수(10개 카테고리) — 구간마다 잡히는 카테고리 수가 다릅니다.</p>
+    <div class="panel"><div class="chart-box tall"><canvas id="stackChart"></canvas></div></div>
   </section>
 
-  <!-- 4. 누적 분포 가로 바 -->
-  <section>
-    <h2>누적 카테고리 분포 (2024.12 ~ 2026.06, 총 3,218건)</h2>
-    <p class="section-note">노션 대시보드 확정치 기준 누적 건수와 비율. 비율 근거는 막대 끝에 병기.</p>
-    <div class="chart-box tall"><canvas id="cumChart"></canvas></div>
+  <!-- 누적 분포 -->
+  <section id="sec-cum">
+    <div class="s-head"><h2>누적 카테고리 분포</h2><span class="h-meta">2024.12 ~ 2026.06 · 총 3,218건</span></div>
+    <p class="s-note">노션 확정치 기준 누적 건수·비율 (비율 근거는 막대 끝에 병기).</p>
+    <div class="panel"><div class="chart-box tall"><canvas id="cumChart"></canvas></div></div>
   </section>
 
-  <!-- 5. 월간 비교 표 (전수 구간) -->
-  <section>
-    <h2>전수 구간 월간 비교 (2026.04 ~ 2026.06 진행분)</h2>
-    <p class="section-note">같은 수집 기준(전수) 안에서만 비교. 부분 월(2026.06)은 일평균 환산으로만 비교한다.</p>
-    <div class="table-scroll" id="full-compare"></div>
-    <div style="height:18px"></div>
-    <div class="table-scroll" id="share-compare"></div>
+  <!-- 월간 비교 -->
+  <section id="sec-compare">
+    <div class="s-head"><h2>전수 구간 월간 비교</h2><span class="h-meta">2026.04 ~ 2026.06 진행분</span></div>
+    <p class="s-note">같은 수집 기준(전수) 안에서만 비교. 부분 월(2026.06)은 일평균 환산으로만 비교합니다.</p>
+    <div class="panel">
+      <div class="table-scroll" id="full-compare"></div>
+      <div style="height:20px"></div>
+      <div class="table-scroll" id="share-compare"></div>
+    </div>
   </section>
 
-  <!-- 6. 카테고리별 상세 개선 인사이트 -->
-  <section>
-    <h2>카테고리별 상세 개선 인사이트</h2>
-    <p class="section-note">
+  <!-- 인사이트 -->
+  <section id="sec-insight">
+    <div class="s-head"><h2>카테고리별 개선 인사이트</h2><span class="h-meta">카드를 누르면 상세가 열립니다</span></div>
+    <p class="s-note">
       <span class="badge fact">사실</span>확정 수치 ·
       <span class="badge infer">추론</span>해석/시나리오 ·
-      <span class="badge check">확인필요</span>추가 확인 필요 항목.
-      우선순위는 <span class="badge infer">추론</span> — 규모 × 전수 구간 추세 × UXD 개입 가능성 3축 기준.
+      <span class="badge check">확인필요</span>추가 확인 — 우선순위는 규모 × 전수 추세 × UXD 개입 가능성 3축 <span class="badge infer">추론</span>.
     </p>
+    <div class="toolbar"><button id="toggle-all">모두 펼치기</button></div>
     <div id="insight-cards"></div>
   </section>
 
-  <!-- 7. 반납 묶음 인사이트 -->
-  <section>
-    <h2>반납 묶음 인사이트</h2>
+  <!-- 반납 묶음 -->
+  <section id="sec-bundle">
+    <div class="s-head"><h2>반납 묶음 인사이트</h2></div>
     <div id="bundle-box"></div>
   </section>
 
-  <!-- 8. 데이터 한계 -->
-  <section>
-    <h2>데이터 한계</h2>
-    <ul id="limitations"></ul>
+  <!-- 데이터 한계 -->
+  <section id="sec-limit">
+    <div class="s-head"><h2>데이터 한계</h2></div>
+    <details class="plain" id="limit-details">
+      <summary><span id="limit-summary"></span></summary>
+      <div class="p-body"><ul id="limitations"></ul></div>
+    </details>
   </section>
 
   <footer id="footer"></footer>
@@ -156,126 +254,94 @@
   "use strict";
   var D = window.VOC_DATA;
 
-  /* ---------- 공통 헬퍼 ---------- */
   function fmt(n) { return n.toLocaleString("ko-KR"); }
-  function pct(part, whole, digits) {
-    return (part / whole * 100).toFixed(digits === undefined ? 1 : digits);
-  }
-  function pctWithEvidence(part, whole) {
-    return pct(part, whole) + "% (= " + fmt(part) + "/" + fmt(whole) + ")";
-  }
-  function catLabel(key) {
-    var c = D.categories.find(function (x) { return x.key === key; });
-    return "카테고리 " + c.num + " " + c.name;
-  }
-  function regimeColor(r) {
-    return { past5: "#9ca3af", excerpt: "#f97316", full: "#2563eb" }[r];
-  }
-  function monthLabel(m) {
-    var lbl = m.ym.replace("-", ".");
-    if (m.partial) lbl += " (" + m.partialLabel + ")";
-    return lbl;
-  }
+  function pct(p, w, d) { return (p / w * 100).toFixed(d === undefined ? 1 : d); }
+  function cat(key) { return D.categories.find(function (x) { return x.key === key; }); }
+  function catFull(key) { var c = cat(key); return "카테고리 " + c.num + " " + c.name; }
+  function regimeColor(r) { return { past5: "#aab0b8", excerpt: "#e8893f", full: "#3f6bd6" }[r]; }
+  function monthLabel(m) { var l = m.ym.replace("-", "."); if (m.partial) l += " (" + m.partialLabel + ")"; return l; }
 
-  /* 카테고리 고정 색상 (모든 차트 공통) */
   var CAT_COLORS = {
-    c1: "#4e79a7", c2: "#f28e2b", c3: "#59a14f", c4: "#e15759", c5: "#76b7b2",
-    c6: "#edc948", c7: "#b07aa1", c8: "#ff9da7", c9: "#9c755f", c10: "#86bcb6"
+    c1: "#4e79a7", c2: "#e8893f", c3: "#59a14f", c4: "#d9534f", c5: "#56a8a3",
+    c6: "#dcab3c", c7: "#9a6fb0", c8: "#e391a0", c9: "#8d6e63", c10: "#7fb1ab"
   };
-  var UNKNOWN_COLOR = "#d1d5db";
+  var UNKNOWN_COLOR = "#d6d9dd";
 
-  /* ---------- 메타/푸터 ---------- */
+  /* 카테고리 칩: [카테고리 N] 색 알약 — 번호는 작게, 이름은 옆에 크게 */
+  function catPill(key) {
+    var c = cat(key);
+    return '<span class="cat-pill" style="--cc:' + CAT_COLORS[key] + '">카테고리 ' + c.num + '</span>';
+  }
+  /* 전수 구간 비중 추세 */
+  function fullTrend(key) {
+    var fm = D.months.filter(function (m) { return m.regime === "full"; });
+    var pts = fm.map(function (m) { return { ym: m.ym, share: (m.categories[key] || 0) / m.total * 100, n: (m.categories[key] || 0), t: m.total, partial: m.partial }; });
+    var first = pts[0].share, last = pts[pts.length - 1].share;
+    var dir = last > first + 0.05 ? "up" : (last < first - 0.05 ? "down" : "flat");
+    return { pts: pts, dir: dir };
+  }
+
+  /* ── 메타/푸터 ── */
   document.getElementById("meta-sub").textContent =
-    "기간 " + D.meta.periodLabel + " · 기준: " + D.meta.source + " · 노션 대시보드가 최종 기준(source of truth)";
+    "기간 " + D.meta.periodLabel + " · 기준 " + D.meta.source + " · 노션이 최종 기준(source of truth)";
   document.getElementById("footer").textContent =
-    "데이터 버전 " + D.meta.version + " · 갱신 절차는 README.md, 분류 기준은 rules/classification-rules.md 참조";
+    "데이터 버전 " + D.meta.version + " · 갱신 절차 README.md · 분류 기준 rules/classification-rules.md";
 
-  /* ---------- 1. 헤더 카드 ---------- */
-  var fullDays = D.fullRegime.days;
-  var fullTotal = D.cumulative.byRegime.full;
+  /* ── KPI ── */
+  var fullTotal = D.cumulative.byRegime.full, fullDays = D.fullRegime.days;
   var dailyAvg = (fullTotal / fullDays).toFixed(2);
-  var cardsHtml = "";
-  cardsHtml += '<div class="card"><div class="k">누적 VOC</div><div class="v">' + fmt(D.cumulative.total) + '건</div>' +
-    '<div class="e">' + D.cumulative.byRegimeLabel + "</div></div>";
-  cardsHtml += '<div class="card"><div class="k">기간</div><div class="v">2024.12 ~ 2026.06</div>' +
-    '<div class="e">19개월 · 2026.06은 9일치 진행 중</div></div>';
-  cardsHtml += '<div class="card"><div class="k">정기(전수) 구간 일평균</div><div class="v">' + dailyAvg + '건</div>' +
-    '<div class="e">= ' + fmt(fullTotal) + "건 / " + fullDays + "일 (" + D.fullRegime.label + ")</div></div>";
-  cardsHtml += '<div class="card warn-card"><div class="k">⚠️ 수집 기준 3구간</div><div class="v">구간 간 직접 비교 금지</div>' +
-    '<div class="e">과거 1년: 5개 유형만 / 발췌: OCR·Top 3만 확인 / 전수: 10개 카테고리</div></div>';
-  document.getElementById("header-cards").innerHTML = cardsHtml;
+  var kpi = "";
+  kpi += '<div class="kpi"><div class="k">누적 VOC</div><div class="v">' + fmt(D.cumulative.total) + '<small> 건</small></div><div class="e">' + D.cumulative.byRegimeLabel + '</div></div>';
+  kpi += '<div class="kpi"><div class="k">기간</div><div class="v" style="font-size:19px">2024.12–2026.06</div><div class="e">19개월 · 6월은 9일치 진행 중</div></div>';
+  kpi += '<div class="kpi"><div class="k">전수 구간 일평균</div><div class="v">' + dailyAvg + '<small> 건</small></div><div class="e">= ' + fmt(fullTotal) + ' / ' + fullDays + '일</div></div>';
+  kpi += '<div class="kpi warn"><div class="k">⚠ 수집 기준 3구간</div><div class="v">구간 간 직접 비교 금지</div><div class="e">과거 1년 5유형 · 발췌 Top3 · 전수 10개</div></div>';
+  document.getElementById("kpis").innerHTML = kpi;
 
-  /* ---------- 2. 월별 추이 라인 차트 ---------- */
+  /* ── 월별 추이 라인 ── */
   var labels = D.months.map(monthLabel);
   var totals = D.months.map(function (m) { return m.total; });
   var regimes = D.months.map(function (m) { return m.regime; });
-
-  /* 구간 경계 인덱스 (regime이 바뀌는 지점) */
   var boundaries = [];
-  for (var i = 1; i < regimes.length; i++) {
-    if (regimes[i] !== regimes[i - 1]) boundaries.push(i);
-  }
+  for (var i = 1; i < regimes.length; i++) if (regimes[i] !== regimes[i - 1]) boundaries.push(i);
 
   var regimeBandPlugin = {
     id: "regimeBands",
     beforeDraw: function (chart) {
       var ctx = chart.ctx, x = chart.scales.x, area = chart.chartArea;
       if (!x || !area) return;
-      /* 구간 배경 띠 */
-      var bandColors = { past5: "rgba(156,163,175,0.10)", excerpt: "rgba(249,115,22,0.08)", full: "rgba(37,99,235,0.07)" };
+      var bandColors = { past5: "rgba(170,176,184,0.10)", excerpt: "rgba(232,137,63,0.08)", full: "rgba(63,107,214,0.07)" };
       var start = 0;
       for (var i = 1; i <= regimes.length; i++) {
         if (i === regimes.length || regimes[i] !== regimes[start]) {
-          var x0 = x.getPixelForValue(start) - (start === 0 ? 0 : (x.getPixelForValue(start) - x.getPixelForValue(start - 1)) / 2);
-          var x1 = (i === regimes.length)
-            ? area.right
-            : x.getPixelForValue(i - 1) + (x.getPixelForValue(i) - x.getPixelForValue(i - 1)) / 2;
-          if (start === 0) x0 = area.left;
+          var x0 = (start === 0) ? area.left : (x.getPixelForValue(start - 1) + x.getPixelForValue(start)) / 2;
+          var x1 = (i === regimes.length) ? area.right : (x.getPixelForValue(i - 1) + x.getPixelForValue(i)) / 2;
           ctx.save();
           ctx.fillStyle = bandColors[regimes[start]];
           ctx.fillRect(x0, area.top, x1 - x0, area.bottom - area.top);
-          /* 구간 라벨 */
           ctx.fillStyle = regimeColor(regimes[start]);
-          ctx.font = "700 11px sans-serif";
-          ctx.textAlign = "center";
-          var name = { past5: "과거 1년 (5개 유형만)", excerpt: "발췌 (OCR)", full: "전수 (10개 카테고리)" }[regimes[start]];
-          ctx.fillText(name, (x0 + x1) / 2, area.top + 14);
+          ctx.font = "700 10.5px sans-serif"; ctx.textAlign = "center";
+          var name = { past5: "과거 1년 (5유형)", excerpt: "발췌 (OCR)", full: "전수 (10개)" }[regimes[start]];
+          ctx.fillText(name, (x0 + x1) / 2, area.top + 13);
           ctx.restore();
           start = i;
         }
       }
-      /* 경계 점선 */
       boundaries.forEach(function (b) {
         var px = (x.getPixelForValue(b - 1) + x.getPixelForValue(b)) / 2;
-        ctx.save();
-        ctx.strokeStyle = "#9ca3af";
-        ctx.setLineDash([5, 4]);
-        ctx.beginPath();
-        ctx.moveTo(px, area.top);
-        ctx.lineTo(px, area.bottom);
-        ctx.stroke();
-        ctx.restore();
+        ctx.save(); ctx.strokeStyle = "#c2c6cc"; ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.moveTo(px, area.top); ctx.lineTo(px, area.bottom); ctx.stroke(); ctx.restore();
       });
     },
     afterDraw: function (chart) {
-      /* 2026.04 주석 */
       var ctx = chart.ctx, x = chart.scales.x, y = chart.scales.y;
       var idx = D.months.findIndex(function (m) { return m.ym === "2026-04"; });
       if (idx < 0) return;
       var px = x.getPixelForValue(idx), py = y.getPixelForValue(totals[idx]);
-      ctx.save();
-      ctx.font = "600 11px sans-serif";
-      ctx.fillStyle = "#b45309";
-      ctx.textAlign = "right";
-      ctx.fillText("집계 방식 변화(발췌→전수)", px - 14, py + 26);
-      ctx.fillText("— 실제 발생 급증 아님", px - 14, py + 39);
-      ctx.strokeStyle = "#b45309";
-      ctx.setLineDash([2, 2]);
-      ctx.beginPath();
-      ctx.moveTo(px - 10, py + 22);
-      ctx.lineTo(px - 1, py + 6);
-      ctx.stroke();
-      ctx.restore();
+      ctx.save(); ctx.font = "600 10.5px sans-serif"; ctx.fillStyle = "#b4540a"; ctx.textAlign = "right";
+      ctx.fillText("집계 방식 변화(발췌→전수)", px - 13, py + 25);
+      ctx.fillText("— 실제 발생 급증 아님", px - 13, py + 38);
+      ctx.strokeStyle = "#b4540a"; ctx.setLineDash([2, 2]);
+      ctx.beginPath(); ctx.moveTo(px - 9, py + 21); ctx.lineTo(px - 1, py + 6); ctx.stroke(); ctx.restore();
     }
   };
 
@@ -284,264 +350,175 @@
     data: {
       labels: labels,
       datasets: [{
-        label: "월별 VOC 건수",
-        data: totals,
-        borderWidth: 2.5,
-        tension: 0.25,
-        pointRadius: D.months.map(function (m) { return m.partial ? 6 : 4; }),
-        pointBackgroundColor: regimes.map(function (r, i) {
-          return D.months[i].partial ? "#ffffff" : regimeColor(r);
-        }),
+        data: totals, borderWidth: 2.3, tension: 0.25,
+        pointRadius: D.months.map(function (m) { return m.partial ? 5.5 : 3.5; }),
+        pointBackgroundColor: regimes.map(function (r, i) { return D.months[i].partial ? "#fff" : regimeColor(r); }),
         pointBorderColor: regimes.map(regimeColor),
         pointBorderWidth: D.months.map(function (m) { return m.partial ? 2.5 : 1.5; }),
         segment: {
-          borderColor: function (ctx) {
-            var r0 = regimes[ctx.p0DataIndex], r1 = regimes[ctx.p1DataIndex];
-            return r0 === r1 ? regimeColor(r1) : "#c4c8cf";
-          },
-          borderDash: function (ctx) {
-            return regimes[ctx.p0DataIndex] === regimes[ctx.p1DataIndex] ? undefined : [6, 5];
-          }
+          borderColor: function (c) { var a = regimes[c.p0DataIndex], b = regimes[c.p1DataIndex]; return a === b ? regimeColor(b) : "#cdd1d7"; },
+          borderDash: function (c) { return regimes[c.p0DataIndex] === regimes[c.p1DataIndex] ? undefined : [6, 5]; }
         }
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      layout: { padding: { top: 24 } },
+      responsive: true, maintainAspectRatio: false, layout: { padding: { top: 22 } },
       plugins: {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: function (ctx) {
-              var m = D.months[ctx.dataIndex];
-              var lines = ["VOC " + fmt(m.total) + "건"];
-              lines.push("수집 기준: " + D.regimes[m.regime].label);
-              if (m.partial) lines.push("⚠ " + m.partialLabel + " — 비교는 일평균 환산만");
-              if (m.regime === "full" && m.days) {
-                lines.push("일평균 " + (m.total / m.days).toFixed(2) + "건 (= " + fmt(m.total) + "/" + m.days + "일)");
-              }
-              return lines;
+            title: function (it) { return monthLabel(D.months[it[0].dataIndex]); },
+            label: function (c) {
+              var m = D.months[c.dataIndex], L = ["VOC " + fmt(m.total) + "건", "수집: " + D.regimes[m.regime].label];
+              if (m.partial) L.push("⚠ " + m.partialLabel + " — 일평균 환산만");
+              if (m.regime === "full" && m.days) L.push("일평균 " + (m.total / m.days).toFixed(2) + " (= " + fmt(m.total) + "/" + m.days + "일)");
+              return L;
             }
           }
         }
       },
-      scales: {
-        y: { beginAtZero: true, title: { display: true, text: "건수 (월 단위)" } },
-        x: { ticks: { maxRotation: 60, minRotation: 45 } }
-      }
+      scales: { y: { beginAtZero: true, grid: { color: "#f0f1f3" }, title: { display: true, text: "건수 (월)", color: "#9298a1", font: { size: 11 } } }, x: { grid: { display: false }, ticks: { maxRotation: 60, minRotation: 45, font: { size: 10.5 } } } }
     },
     plugins: [regimeBandPlugin]
   });
 
-  var legendHtml = "";
+  var lg = "";
   ["past5", "excerpt", "full"].forEach(function (r) {
-    legendHtml += '<span><span class="sw" style="background:' + regimeColor(r) + '"></span>' +
-      D.regimes[r].label + " (" + D.regimes[r].range + ")</span>";
+    lg += '<span><span class="sw" style="background:' + regimeColor(r) + '"></span>' + D.regimes[r].label + " (" + D.regimes[r].range + ")</span>";
   });
-  legendHtml += '<span><span class="sw" style="background:repeating-linear-gradient(90deg,#c4c8cf 0 6px,transparent 6px 11px)"></span>구간 경계 — 전월 대비 비교 금지</span>';
-  document.getElementById("trend-legend").innerHTML = legendHtml;
+  lg += '<span><span class="sw" style="background:repeating-linear-gradient(90deg,#c2c6cc 0 6px,transparent 6px 11px)"></span>구간 경계 — 비교 금지</span>';
+  document.getElementById("trend-legend").innerHTML = lg;
 
-  /* ---------- 3. 월별 카테고리 구성 스택 바 ---------- */
-  var stackDatasets = D.categories.map(function (c) {
-    return {
-      label: catLabel(c.key),
-      backgroundColor: CAT_COLORS[c.key],
-      data: D.months.map(function (m) {
-        return (m.categories[c.key] !== undefined) ? m.categories[c.key] : null;
-      })
-    };
+  /* ── 카테고리 구성 스택 ── */
+  var stackDs = D.categories.map(function (c) {
+    return { label: catFull(c.key), backgroundColor: CAT_COLORS[c.key], data: D.months.map(function (m) { return m.categories[c.key] !== undefined ? m.categories[c.key] : null; }) };
   });
-  stackDatasets.push({
-    label: "기타(미상) — 발췌 구간 분포 미확인분",
-    backgroundColor: UNKNOWN_COLOR,
-    data: D.months.map(function (m) { return m.unknown !== undefined ? m.unknown : null; })
-  });
+  stackDs.push({ label: "기타(미상) — 발췌 구간 분포 미확인분", backgroundColor: UNKNOWN_COLOR, data: D.months.map(function (m) { return m.unknown !== undefined ? m.unknown : null; }) });
 
   new Chart(document.getElementById("stackChart"), {
-    type: "bar",
-    data: { labels: labels, datasets: stackDatasets },
+    type: "bar", data: { labels: labels, datasets: stackDs },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 10.5 } } },
+        legend: { position: "bottom", labels: { boxWidth: 11, font: { size: 10 }, padding: 8 } },
         tooltip: {
-          filter: function (item) { return item.raw !== null && item.raw !== 0; },
-          callbacks: {
-            footer: function (items) {
-              if (!items.length) return "";
-              var m = D.months[items[0].dataIndex];
-              var f = "월 합계 " + fmt(m.total) + "건 · " + D.regimes[m.regime].label;
-              if (m.partial) f += " · " + m.partialLabel;
-              return f;
-            }
-          }
+          filter: function (it) { return it.raw !== null && it.raw !== 0; },
+          callbacks: { footer: function (it) { if (!it.length) return ""; var m = D.months[it[0].dataIndex]; var f = "월 합계 " + fmt(m.total) + "건 · " + D.regimes[m.regime].label; if (m.partial) f += " · " + m.partialLabel; return f; } }
         }
       },
-      scales: {
-        x: { stacked: true, ticks: { maxRotation: 60, minRotation: 45 } },
-        y: { stacked: true, beginAtZero: true, title: { display: true, text: "건수 (월 단위)" } }
-      }
+      scales: { x: { stacked: true, grid: { display: false }, ticks: { maxRotation: 60, minRotation: 45, font: { size: 10.5 } } }, y: { stacked: true, beginAtZero: true, grid: { color: "#f0f1f3" }, title: { display: true, text: "건수 (월)", color: "#9298a1", font: { size: 11 } } } }
     }
   });
 
-  /* ---------- 4. 누적 분포 가로 바 ---------- */
-  var cumEntries = Object.keys(D.cumulative.byCategory)
-    .map(function (k) { return { key: k, count: D.cumulative.byCategory[k] }; })
-    .sort(function (a, b) { return b.count - a.count; });
-
+  /* ── 누적 분포 가로 바 ── */
+  var cumEntries = Object.keys(D.cumulative.byCategory).map(function (k) { return { key: k, count: D.cumulative.byCategory[k] }; }).sort(function (a, b) { return b.count - a.count; });
   var cumLabelPlugin = {
     id: "cumLabels",
     afterDatasetsDraw: function (chart) {
-      var ctx = chart.ctx;
-      var meta = chart.getDatasetMeta(0);
+      var ctx = chart.ctx, meta = chart.getDatasetMeta(0);
       meta.data.forEach(function (bar, i) {
         var e = cumEntries[i];
-        var text = fmt(e.count) + "건 · " + pct(e.count, D.cumulative.total) + "% (= " + fmt(e.count) + "/" + fmt(D.cumulative.total) + ")";
-        ctx.save();
-        ctx.font = "600 11px sans-serif";
-        ctx.fillStyle = "#374151";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-        ctx.fillText(text, bar.x + 8, bar.y);
+        ctx.save(); ctx.font = "600 11px sans-serif"; ctx.fillStyle = "#5c626b"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+        ctx.fillText(fmt(e.count) + "건 · " + pct(e.count, D.cumulative.total) + "% (= " + fmt(e.count) + "/" + fmt(D.cumulative.total) + ")", bar.x + 8, bar.y);
         ctx.restore();
       });
     }
   };
-
   new Chart(document.getElementById("cumChart"), {
     type: "bar",
-    data: {
-      labels: cumEntries.map(function (e) { return catLabel(e.key); }),
-      datasets: [{
-        data: cumEntries.map(function (e) { return e.count; }),
-        backgroundColor: cumEntries.map(function (e) { return CAT_COLORS[e.key]; }),
-        borderRadius: 4
-      }]
-    },
+    data: { labels: cumEntries.map(function (e) { return catFull(e.key); }), datasets: [{ data: cumEntries.map(function (e) { return e.count; }), backgroundColor: cumEntries.map(function (e) { return CAT_COLORS[e.key]; }), borderRadius: 5 }] },
     options: {
-      indexAxis: "y",
-      responsive: true, maintainAspectRatio: false,
-      layout: { padding: { right: 230 } },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function (ctx) {
-              var e = cumEntries[ctx.dataIndex];
-              return fmt(e.count) + "건 — 전체의 " + pctWithEvidence(e.count, D.cumulative.total);
-            }
-          }
-        }
-      },
-      scales: {
-        x: { beginAtZero: true, title: { display: true, text: "누적 건수" } },
-        y: { ticks: { font: { size: 11.5 }, autoSkip: false } }
-      }
+      indexAxis: "y", responsive: true, maintainAspectRatio: false, layout: { padding: { right: 230 } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { var e = cumEntries[c.dataIndex]; return fmt(e.count) + "건 — 전체의 " + pct(e.count, D.cumulative.total) + "% (= " + fmt(e.count) + "/" + fmt(D.cumulative.total) + ")"; } } } },
+      scales: { x: { beginAtZero: true, grid: { color: "#f0f1f3" }, title: { display: true, text: "누적 건수", color: "#9298a1", font: { size: 11 } } }, y: { grid: { display: false }, ticks: { font: { size: 11 }, autoSkip: false } } }
     },
     plugins: [cumLabelPlugin]
   });
 
-  /* ---------- 5. 전수 구간 월간 비교 표 ---------- */
-  var fullMonths = D.months.filter(function (m) { return m.regime === "full"; });
-
+  /* ── 월간 비교 표 ── */
+  var fm = D.months.filter(function (m) { return m.regime === "full"; });
   var t1 = '<table><thead><tr><th>월</th><th>건수</th><th>일수</th><th>일평균 (근거)</th><th>일평균 전월 대비</th></tr></thead><tbody>';
-  fullMonths.forEach(function (m, i) {
-    var avg = m.total / m.days;
-    var momCell = "—";
-    var cls = "";
+  fm.forEach(function (m, i) {
+    var avg = m.total / m.days, mom = "—", cls = "";
     if (i > 0) {
-      var prevAvg = fullMonths[i - 1].total / fullMonths[i - 1].days;
-      var delta = (avg - prevAvg) / prevAvg * 100;
-      cls = delta > 0 ? "up" : "down";
-      momCell = (delta > 0 ? "+" : "") + delta.toFixed(1) + "%";
-      if (m.partial) momCell += " <span class='badge check'>확인필요</span><span style='font-weight:400;color:#6b7280'>진행분 기준 참고치</span>";
+      var prev = fm[i - 1].total / fm[i - 1].days, d = (avg - prev) / prev * 100;
+      cls = d > 0 ? "up" : "down"; mom = (d > 0 ? "+" : "") + d.toFixed(1) + "%";
+      if (m.partial) mom += " <span class='badge check'>확인필요</span>";
     }
-    t1 += "<tr><td>" + monthLabel(m) + (m.partial ? ' <span class="badge warn">부분 월</span>' : "") + "</td>" +
-      "<td>" + fmt(m.total) + "건</td><td>" + m.days + "일</td>" +
-      "<td>" + avg.toFixed(2) + "건 (= " + fmt(m.total) + "/" + m.days + "일)</td>" +
-      '<td class="' + cls + '">' + momCell + "</td></tr>";
+    t1 += "<tr><td>" + monthLabel(m) + "</td><td>" + fmt(m.total) + "건</td><td>" + m.days + "일</td><td>" + avg.toFixed(2) + "건 <span class='ev'>(= " + fmt(m.total) + "/" + m.days + ")</span></td><td class='" + cls + "'>" + mom + "</td></tr>";
   });
   t1 += "</tbody></table>";
-  document.getElementById("full-compare").innerHTML =
-    "<strong>월 총량 → 일평균 환산 비교</strong> <span class='badge fact'>사실</span>" + t1;
+  document.getElementById("full-compare").innerHTML = '<p class="tbl-cap">월 총량 → 일평균 환산 비교 <span class="badge fact">사실</span></p>' + t1;
 
-  /* 카테고리 비중 변동 표 */
   var t2 = '<table><thead><tr><th>카테고리 (정식 분류명)</th>';
-  fullMonths.forEach(function (m) { t2 += "<th>" + monthLabel(m) + " 비중</th>"; });
-  t2 += "<th>5월−4월 (pp)</th><th>6월 진행분−5월 (pp)</th></tr></thead><tbody>";
+  fm.forEach(function (m) { t2 += "<th>" + monthLabel(m) + "</th>"; });
+  t2 += "<th>5월−4월</th><th>6월진행−5월</th></tr></thead><tbody>";
   D.categories.forEach(function (c) {
-    var shares = fullMonths.map(function (m) { return m.categories[c.key] / m.total * 100; });
-    t2 += "<tr><td>" + catLabel(c.key) + "</td>";
-    fullMonths.forEach(function (m, i) {
-      t2 += "<td>" + shares[i].toFixed(1) + "% <span style='color:#9ca3af;font-size:11px'>(= " + fmt(m.categories[c.key]) + "/" + fmt(m.total) + ")</span></td>";
-    });
-    var d1 = shares[1] - shares[0];
-    var d2 = shares[2] - shares[1];
-    t2 += '<td class="' + (d1 > 0 ? "up" : "down") + '">' + (d1 > 0 ? "+" : "") + d1.toFixed(1) + "pp</td>";
-    t2 += '<td class="' + (d2 > 0 ? "up" : "down") + '">' + (d2 > 0 ? "+" : "") + d2.toFixed(1) + "pp</td></tr>";
+    var sh = fm.map(function (m) { return m.categories[c.key] / m.total * 100; });
+    t2 += "<tr><td>" + catFull(c.key) + "</td>";
+    fm.forEach(function (m, i) { t2 += "<td>" + sh[i].toFixed(1) + "% <span class='ev'>(" + fmt(m.categories[c.key]) + "/" + fmt(m.total) + ")</span></td>"; });
+    var d1 = sh[1] - sh[0], d2 = sh[2] - sh[1];
+    t2 += "<td class='" + (d1 > 0 ? "up" : "down") + "'>" + (d1 > 0 ? "+" : "") + d1.toFixed(1) + "pp</td><td class='" + (d2 > 0 ? "up" : "down") + "'>" + (d2 > 0 ? "+" : "") + d2.toFixed(1) + "pp</td></tr>";
   });
   t2 += "</tbody></table>";
-  document.getElementById("share-compare").innerHTML =
-    "<strong>카테고리 비중 변동 (전수 구간 내)</strong> <span class='badge fact'>사실</span> " +
-    "<span style='color:#6b7280;font-size:12px'>— 6월 진행분 열은 9일치 기준 참고치</span>" + t2;
+  document.getElementById("share-compare").innerHTML = '<p class="tbl-cap">카테고리 비중 변동 (전수 구간 내) <span class="badge fact">사실</span> <span class="ev">— 6월 진행분은 9일치 참고치</span></p>' + t2;
 
-  /* ---------- 6. 카테고리별 상세 개선 인사이트 ---------- */
-  function li(items, badgeClass, badgeText) {
-    return items.map(function (t) {
-      return "<li>" + (badgeClass ? '<span class="badge ' + badgeClass + '">' + badgeText + "</span>" : "") + t + "</li>";
-    }).join("");
+  /* ── 인사이트 접이식 카드 ── */
+  function liList(items, bc, bt) {
+    return items.map(function (t) { return "<li>" + (bc ? '<span class="badge ' + bc + '">' + bt + "</span>" : "") + t + "</li>"; }).join("");
   }
-
-  var insightHtml = "";
+  var ih = "";
   D.insights.forEach(function (ins) {
-    var c = D.categories.find(function (x) { return x.key === ins.key; });
-    insightHtml += '<div class="insight">';
-    insightHtml += "<h3>" + catLabel(ins.key) +
-      ' <span class="badge tier">우선순위: ' + ins.priorityTier + ' <span style="font-weight:400">[추론]</span></span>' +
-      (c.createdAt ? ' <span class="badge check">신설 ' + c.createdAt + "</span>" : "") +
-      "</h3>";
+    var c = cat(ins.key);
+    var cum = D.cumulative.byCategory[ins.key];
+    var tr = fullTrend(ins.key);
+    var arrow = tr.dir === "up" ? "↑" : (tr.dir === "down" ? "↓" : "→");
+    var trendStr = tr.pts.map(function (p) { return p.share.toFixed(1) + "%"; }).join(" → ");
+    var trendEv = tr.pts.map(function (p) { return p.ym.replace("-", ".") + (p.partial ? "(진행)" : "") + " " + p.n + "/" + p.t; }).join(" · ");
 
-    insightHtml += '<div class="block"><div class="block-title">현황</div><ul>' + li(ins.facts, "fact", "사실") + "</ul></div>";
-    insightHtml += '<div class="block"><div class="block-title">추이 해석 (시나리오)</div><ul>' + li(ins.scenarios, "infer", "추론") + "</ul></div>";
-    insightHtml += '<div class="block"><div class="block-title">핵심 마찰 지점 (사용자 여정 매핑)</div><ul>' + li(ins.frictions) + "</ul></div>";
+    ih += '<details class="insight">';
+    ih += '<summary>';
+    ih += catPill(ins.key) + '<span class="sum-name">' + c.name + '</span>';
+    ih += '<span class="sum-right">';
+    ih += '<span class="sum-stat">누적 <b>' + fmt(cum) + '</b>건 · ' + pct(cum, D.cumulative.total) + '%</span>';
+    ih += '<span class="sum-trend" title="전수 구간 비중 · 근거 ' + trendEv + '">전수 ' + trendStr + '<span class="arr ' + tr.dir + '">' + arrow + '</span></span>';
+    ih += '<span class="sum-prio">' + ins.priorityTier + '</span>';
+    ih += '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>';
+    ih += '</span></summary>';
 
-    insightHtml += '<div class="block"><div class="block-title">UXD 개선안</div><ul>' +
-      ins.improvements.map(function (im) {
-        return '<li><span class="lvl">' + im.level + "</span>" + im.text + "</li>";
-      }).join("") + "</ul></div>";
-
-    if (ins.otherDept) {
-      insightHtml += '<div class="block"><div class="dept-line"><span class="badge dept">타 부서 의제</span>' + ins.otherDept + "</div></div>";
-    }
-
-    insightHtml += '<div class="block"><div class="block-title">우선순위 근거 (3축)</div>' +
-      '<span class="badge infer">추론</span>' + ins.priorityRationale + "</div>";
-    insightHtml += '<div class="block"><div class="block-title">검증 방법</div>' + ins.validation + "</div>";
-
-    if (ins.checks && ins.checks.length) {
-      insightHtml += '<div class="block"><div class="block-title">확인 필요</div><ul>' + li(ins.checks, "check", "확인필요") + "</ul></div>";
-    }
-    insightHtml += "</div>";
+    ih += '<div class="i-body">';
+    ih += '<div class="i-block"><div class="bt">현황</div><ul>' + liList(ins.facts, "fact", "사실") + '</ul></div>';
+    ih += '<div class="i-block"><div class="bt">추이 해석 (시나리오)</div><ul>' + liList(ins.scenarios, "infer", "추론") + '</ul></div>';
+    ih += '<div class="i-block"><div class="bt">핵심 마찰 지점 (사용자 여정)</div><ul>' + liList(ins.frictions) + '</ul></div>';
+    ih += '<div class="i-block"><div class="bt">UXD 개선안</div><ul>' + ins.improvements.map(function (im) { return '<li><span class="lvl">' + im.level + '</span>' + im.text + '</li>'; }).join("") + '</ul></div>';
+    if (ins.otherDept) ih += '<div class="i-block"><div class="dept-line"><span class="badge dept">타 부서 의제</span>' + ins.otherDept + '</div></div>';
+    ih += '<div class="i-block"><div class="bt">우선순위 근거 (3축)</div><div class="i-rat"><span class="badge infer">추론</span>' + ins.priorityRationale + '</div></div>';
+    ih += '<div class="i-block"><div class="bt">검증 방법</div><div class="i-rat">' + ins.validation + '</div></div>';
+    if (ins.checks && ins.checks.length) ih += '<div class="i-block"><div class="bt">확인 필요</div><ul>' + liList(ins.checks, "check", "확인필요") + '</ul></div>';
+    ih += '</div></details>';
   });
-  document.getElementById("insight-cards").innerHTML = insightHtml;
+  document.getElementById("insight-cards").innerHTML = ih;
 
-  /* ---------- 7. 반납 묶음 인사이트 ---------- */
+  var tgl = document.getElementById("toggle-all");
+  tgl.addEventListener("click", function () {
+    var ds = document.querySelectorAll("#insight-cards details");
+    var anyClosed = Array.prototype.some.call(ds, function (d) { return !d.open; });
+    Array.prototype.forEach.call(ds, function (d) { d.open = anyClosed; });
+    tgl.textContent = anyClosed ? "모두 접기" : "모두 펼치기";
+  });
+
+  /* ── 반납 묶음 ── */
   var b = D.returnBundle;
-  var bundleNames = b.keys.map(catLabel).join(" + ");
-  var bundleHtml =
+  document.getElementById("bundle-box").innerHTML =
     '<div class="callout blue" style="margin-top:0">' +
-    '<span class="badge fact">사실</span><strong>' + bundleNames + " = " + fmt(b.total) + "건 (" + b.evidence + ")</strong>" +
-    " — 단일 최대 페인포인트 묶음.<br>" +
-    '<span class="badge fact">사실</span>과거 1년 구간에서도 반납 관련 비중 ' + b.past5Share + " (" + b.past5ShareSource + ")로 방향이 일치한다.<br>" +
-    '<span class="badge infer">추론</span>수집 기준이 세 번 바뀌는 동안에도 반납 단계가 일관되게 최대 마찰 지점으로 나타나므로, ' +
-    "반납 경험(사진 절차 → 만차/위치 → 특수 상황 안내)을 하나의 여정으로 묶어 설계 개선하는 것이 효과적일 것으로 본다." +
-    "</div>";
-  document.getElementById("bundle-box").innerHTML = bundleHtml;
+    '<span class="badge fact">사실</span><b>' + b.keys.map(catFull).join(" + ") + " = " + fmt(b.total) + "건 (" + b.evidence + ")</b> — 단일 최대 페인포인트 묶음.<br>" +
+    '<span class="badge fact">사실</span>과거 1년 구간 반납 관련 비중 ' + b.past5Share + " (" + b.past5ShareSource + ")로 방향 일치.<br>" +
+    '<span class="badge infer">추론</span>수집 기준이 세 번 바뀌어도 반납 단계가 일관되게 최대 마찰 — 반납 경험(사진 절차 → 만차/위치 → 특수 안내)을 한 여정으로 묶어 개선하는 편이 효과적.' +
+    '</div>';
 
-  /* ---------- 8. 데이터 한계 ---------- */
-  document.getElementById("limitations").innerHTML = D.limitations.map(function (t) {
-    return '<li style="margin-bottom:6px"><span class="badge fact">사실</span>' + t + "</li>";
-  }).join("");
+  /* ── 데이터 한계 ── */
+  document.getElementById("limit-summary").innerHTML = "데이터 한계 " + D.limitations.length + "가지 — 펼쳐서 확인";
+  document.getElementById("limitations").innerHTML = D.limitations.map(function (t) { return '<li><span class="badge fact">사실</span>' + t + "</li>"; }).join("");
 })();
 </script>
 </body>
