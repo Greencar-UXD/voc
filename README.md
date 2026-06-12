@@ -20,7 +20,7 @@ voc-dashboard/
 
 ## 갱신 절차 (새 기간 처리)
 
-1. **새 기간 엑셀을 Claude에 전달** → `rules/classification-rules.md` 룰 + `rules/labeled-examples.md` 예시로 분류한다. 애매한 새 경계 케이스는 `rules/decision-log.md`에 기록하고, 노션 확정치와의 불일치 건수를 일치율 표에 남긴다(학습 누적).
+1. **새 기간 엑셀을 Claude에 전달** → `rules/classification-rules.md` 룰 + `rules/labeled-examples.md` 예시로 분류한다. 애매한 새 경계 케이스는 `rules/decision-log.md`에 기록하고, 사용자 확정치와의 불일치 건수를 일치율 표에 남긴다(학습 누적).
 2. **검증 확정 후** `data.js`의 해당 월 엔트리만 갱신한다.
 3. **`index.html` 새로고침**으로 로컬 확인. 끝.
 4. (배포 중인 경우) **commit → push**하면 공유 링크에 1~2분 내 자동 반영:
@@ -29,7 +29,7 @@ voc-dashboard/
    ```
    또는 `./deploy.sh` 한 번 실행 (커밋·푸시 자동 처리).
 
-> ※ **노션 대시보드가 최종 기준(source of truth).** `data.js`는 노션 확정치의 사본이며, 충돌 시 노션을 따른다.
+> ※ **사용자가 확정한 집계가 최종 기준(source of truth)이며, `data.js`가 그 기록이다.** 새 데이터는 분류 → 사용자 확정 후에만 반영한다.
 
 ## 배포 (GitHub Pages)
 
@@ -64,15 +64,15 @@ voc-dashboard/
 | 항목 | 위치 | 비고 |
 |---|---|---|
 | 새 월 추가/수정 | `months` 배열 | `{ ym, total, regime, days, categories, unknown?, partial? }` |
-| 누적 총계·분포 | `cumulative` | 노션 확정치로 통째로 교체 |
+| 누적 총계·분포 | `cumulative` | 확정 집계로 통째로 교체 |
 | 전수 구간 일수 | `fullRegime.days` | 일평균(= 전수 누적 ÷ 일수) 계산에 사용 |
 | 부분 월 확정 | 해당 월의 `partial`/`partialLabel` 제거, `days`를 말일로 | 예: 2026-06이 월말 확정되면 `partial` 삭제, `days: 30` |
-| 인사이트 갱신 | `insights` 배열 | 노션 확정 방향 변경 시에만 |
+| 인사이트 갱신 | `insights` 배열 | 확정된 방향 변경 시에만 |
 
 ### 데이터 규칙 (위반 금지)
 
 - **집계 수치만 포함** — VOC 원문·차량모델·차고지명 등 원본 후기 식별 가능 정보 금지 (공개 배포 전제).
-- 노션 확정치에 없는 수치를 만들지 말 것 — 미상은 `unknown` 필드(화면에는 "기타(미상)")로.
+- 확정 집계에 없는 수치를 만들지 말 것 — 미상은 `unknown` 필드(화면에는 "기타(미상)")로.
 - `regime`은 `past5`(과거 1년, 5개 유형만) / `excerpt`(OCR 발췌본) / `full`(전수 10개 카테고리) 중 하나.
 - 시간 축은 오직 월 단위 — 일별·요일별·주차별 데이터를 넣지 않는다.
 - 카테고리 표기는 "카테고리 N + 정식 분류명" 완전 표기 (줄임말 금지).

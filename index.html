@@ -129,9 +129,25 @@
   details.plain ul { margin: 8px 0 0; padding-left: 18px; }
   details.plain li { margin-bottom: 7px; color: var(--ink-2); }
 
+  /* 카테고리 캡슐 태그 (모든 카테고리 표기 공통) */
+  .ctag { display: inline-flex; align-items: center; gap: 6px; padding: 2px 11px 2px 3px; border-radius: 999px; background: #f1f2f4; white-space: nowrap; line-height: 1.6; vertical-align: middle; }
+  .ctag-n { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; background: var(--cc, #888); color: #fff; font-size: 10.5px; font-weight: 800; }
+  .ctag-nm { font-size: 12px; font-weight: 600; color: var(--ink); letter-spacing: -0.2px; }
+  .cap-legend { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+
+  /* 누적 분포 — HTML 바 + 캡슐 태그 */
+  .dist { display: flex; flex-direction: column; gap: 10px; }
+  .dist-row { display: grid; grid-template-columns: 272px 1fr auto; align-items: center; gap: 13px; }
+  .dist-label { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .dist-name { font-size: 12.5px; font-weight: 600; color: var(--ink); letter-spacing: -0.2px; }
+  .dist-bar { background: #f1f2f4; border-radius: 6px; height: 16px; overflow: hidden; }
+  .dist-fill { height: 100%; border-radius: 6px; min-width: 3px; }
+  .dist-val { font-size: 12px; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .dist-val b { color: var(--ink); font-weight: 800; }
+
   footer { color: var(--ink-3); font-size: 11.5px; margin-top: 34px; text-align: center; }
 
-  @media (max-width: 620px) { .sum-right { width: 100%; margin-left: 0; } .kpi .v { font-size: 22px; } }
+  @media (max-width: 620px) { .sum-right { width: 100%; margin-left: 0; } .kpi .v { font-size: 22px; } .dist-row { grid-template-columns: 1fr; gap: 5px; } .dist-bar { height: 12px; } }
 </style>
 </head>
 <body>
@@ -171,15 +187,15 @@
   <!-- 누적 분포 -->
   <section id="sec-cum">
     <div class="s-head"><h2>누적 카테고리 분포</h2><span class="h-meta">2024.12 ~ 2026.06 · 총 3,218건</span></div>
-    <p class="s-note">노션 확정치 기준 누적 건수·비율 (비율 근거는 막대 끝에 병기). 구성 비교이므로 구간 차이 영향이 적습니다.</p>
-    <div class="panel"><div class="chart-box tall"><canvas id="cumChart"></canvas></div></div>
+    <p class="s-note">확정 집계 기준 누적 건수·비율 (비율 근거는 값 뒤에 병기). 구성 비교이므로 구간 차이 영향이 적습니다.</p>
+    <div class="panel"><div id="cumDist" class="dist"></div></div>
   </section>
 
   <!-- 카테고리 구성 -->
   <section id="sec-stack">
     <div class="s-head"><h2>월별 카테고리 구성</h2><span class="h-meta">스택 바 · 월 단위</span></div>
     <p class="s-note">과거 1년(4유형) · 발췌(Top 3 + 기타 미상) · 전수(10개) — 구간마다 잡히는 카테고리 수가 다릅니다(구성 비율로만 해석).</p>
-    <div class="panel"><div class="chart-box tall"><canvas id="stackChart"></canvas></div></div>
+    <div class="panel"><div class="chart-box tall"><canvas id="stackChart"></canvas></div><div id="stack-legend" class="cap-legend"></div></div>
   </section>
 
   <!-- 월별 수집 이력 (추이 차트를 참고용으로 격하 + 구간 끊어그리기) -->
@@ -203,7 +219,7 @@
       <span class="badge fact">사실</span>확정 수치 ·
       <span class="badge infer">추론</span>해석·심각도·우선순위 ·
       <span class="badge check">확인필요</span>추가 확인.
-      <b>심각도</b>는 마찰 지점 기반 <span class="badge infer">추론</span>값(측정 아님) — 노션 확정치로 교정 대상입니다.
+      <b>심각도</b>는 마찰 지점 기반 <span class="badge infer">추론</span>값(측정 아님) — 확정 집계로 교정 대상입니다.
     </p>
     <div class="toolbar">
       <div class="sortbar">
@@ -253,6 +269,7 @@
   var UNKNOWN_COLOR = "#d6d9dd";
 
   function catPill(key) { var c = cat(key); return '<span class="cat-pill" style="--cc:' + CAT_COLORS[key] + '">카테고리 ' + c.num + '</span>'; }
+  function catTag(key) { var c = cat(key); return '<span class="ctag" style="--cc:' + CAT_COLORS[key] + '"><span class="ctag-n">카테고리 ' + c.num + '</span><span class="ctag-nm">' + c.name + '</span></span>'; }
   function fullTrend(key) {
     var fm = D.months.filter(function (m) { return m.regime === "full"; });
     var pts = fm.map(function (m) { return { ym: m.ym, share: (m.categories[key] || 0) / m.total * 100, n: (m.categories[key] || 0), t: m.total, partial: m.partial }; });
@@ -260,7 +277,7 @@
     return { pts: pts, dir: last > first + 0.05 ? "up" : (last < first - 0.05 ? "down" : "flat"), first: first, last: last };
   }
 
-  document.getElementById("meta-sub").textContent = "기간 " + D.meta.periodLabel + " · 기준 " + D.meta.source + " · 노션이 최종 기준(source of truth)";
+  document.getElementById("meta-sub").textContent = "기간 " + D.meta.periodLabel + " · 기준 " + D.meta.source + " · 확정 집계가 기준(data.js가 기록 원천)";
   document.getElementById("footer").textContent = "데이터 버전 " + D.meta.version + " · 갱신 절차 README.md · 분류 기준 rules/classification-rules.md";
 
   /* ── KPI ── */
@@ -304,7 +321,7 @@
   t2 += "<th>5월−4월</th><th>6월진행−5월</th></tr></thead><tbody>";
   D.categories.forEach(function (c) {
     var sh = fm.map(function (m) { return m.categories[c.key] / m.total * 100; });
-    t2 += "<tr><td>" + catFull(c.key) + "</td>";
+    t2 += "<tr><td>" + catTag(c.key) + "</td>";
     fm.forEach(function (m, i) { t2 += "<td>" + sh[i].toFixed(1) + "% <span class='ev'>(" + fmt(m.categories[c.key]) + "/" + fmt(m.total) + ")</span></td>"; });
     var d1 = sh[1] - sh[0], d2 = sh[2] - sh[1];
     t2 += "<td class='" + (d1 > 0 ? "up" : "down") + "'>" + (d1 > 0 ? "+" : "") + d1.toFixed(1) + "pp</td><td class='" + (d2 > 0 ? "up" : "down") + "'>" + (d2 > 0 ? "+" : "") + d2.toFixed(1) + "pp</td></tr>";
@@ -312,22 +329,14 @@
   t2 += "</tbody></table>";
   document.getElementById("share-compare").innerHTML = '<p class="tbl-cap">카테고리 비중 변동 (전수 구간 내) <span class="badge fact">사실</span> <span class="ev">— 6월 진행분은 9일치 참고치</span></p>' + t2;
 
-  /* ── 누적 분포 ── */
+  /* ── 누적 분포 (HTML 바 + 캡슐 태그) ── */
   var cumEntries = Object.keys(D.cumulative.byCategory).map(function (k) { return { key: k, count: D.cumulative.byCategory[k] }; }).sort(function (a, b) { return b.count - a.count; });
-  var cumLabelPlugin = { id: "cumLabels", afterDatasetsDraw: function (chart) {
-    var ctx = chart.ctx; chart.getDatasetMeta(0).data.forEach(function (bar, i) {
-      var e = cumEntries[i]; ctx.save(); ctx.font = "600 11px sans-serif"; ctx.fillStyle = "#5c626b"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
-      ctx.fillText(fmt(e.count) + "건 · " + pct(e.count, D.cumulative.total) + "% (= " + fmt(e.count) + "/" + fmt(D.cumulative.total) + ")", bar.x + 8, bar.y); ctx.restore();
-    });
-  }};
-  new Chart(document.getElementById("cumChart"), {
-    type: "bar",
-    data: { labels: cumEntries.map(function (e) { return catFull(e.key); }), datasets: [{ data: cumEntries.map(function (e) { return e.count; }), backgroundColor: cumEntries.map(function (e) { return CAT_COLORS[e.key]; }), borderRadius: 5 }] },
-    options: { indexAxis: "y", responsive: true, maintainAspectRatio: false, layout: { padding: { right: 230 } },
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { var e = cumEntries[c.dataIndex]; return fmt(e.count) + "건 — 전체의 " + pct(e.count, D.cumulative.total) + "% (= " + fmt(e.count) + "/" + fmt(D.cumulative.total) + ")"; } } } },
-      scales: { x: { beginAtZero: true, grid: { color: "#f0f1f3" }, title: { display: true, text: "누적 건수", color: "#9298a1", font: { size: 11 } } }, y: { grid: { display: false }, ticks: { font: { size: 11 }, autoSkip: false } } } },
-    plugins: [cumLabelPlugin]
-  });
+  var cumMax = cumEntries[0].count;
+  document.getElementById("cumDist").innerHTML = cumEntries.map(function (e) {
+    return '<div class="dist-row"><div class="dist-label">' + catPill(e.key) + '<span class="dist-name">' + cat(e.key).name + '</span></div>' +
+      '<div class="dist-bar"><div class="dist-fill" style="width:' + (e.count / cumMax * 100).toFixed(1) + '%;background:' + CAT_COLORS[e.key] + '"></div></div>' +
+      '<div class="dist-val"><b>' + fmt(e.count) + '</b>건 · ' + pct(e.count, D.cumulative.total) + '% <span class="ev">(= ' + fmt(e.count) + '/' + fmt(D.cumulative.total) + ')</span></div></div>';
+  }).join("");
 
   /* ── 카테고리 구성 스택 ── */
   var labels = D.months.map(monthLabel);
@@ -336,10 +345,13 @@
   new Chart(document.getElementById("stackChart"), {
     type: "bar", data: { labels: labels, datasets: stackDs },
     options: { responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: "bottom", labels: { boxWidth: 11, font: { size: 10 }, padding: 8 } },
+      plugins: { legend: { display: false },
         tooltip: { filter: function (it) { return it.raw !== null && it.raw !== 0; }, callbacks: { footer: function (it) { if (!it.length) return ""; var m = D.months[it[0].dataIndex]; var f = "월 합계 " + fmt(m.total) + "건 · " + D.regimes[m.regime].label; if (m.partial) f += " · " + m.partialLabel; return f; } } } },
       scales: { x: { stacked: true, grid: { display: false }, ticks: { maxRotation: 60, minRotation: 45, font: { size: 10.5 } } }, y: { stacked: true, beginAtZero: true, grid: { color: "#f0f1f3" }, title: { display: true, text: "건수 (월)", color: "#9298a1", font: { size: 11 } } } } }
   });
+  document.getElementById("stack-legend").innerHTML =
+    D.categories.map(function (c) { return catTag(c.key); }).join("") +
+    '<span class="ctag" style="--cc:' + UNKNOWN_COLOR + '"><span class="ctag-n">기타(미상)</span><span class="ctag-nm">발췌 구간 분포 미확인분</span></span>';
 
   /* ── 월별 수집 이력 (구간별 끊어그린 라인) ── */
   var regimes = D.months.map(function (m) { return m.regime; });
@@ -407,12 +419,12 @@
     ih += '<summary>' + catPill(ins.key) + '<span class="sum-name">' + c.name + '</span><span class="sum-right">';
     ih += '<span class="sum-stat">누적 <b>' + fmt(cum) + '</b>건·' + pct(cum, D.cumulative.total) + '%</span>';
     ih += '<span class="sum-trend" title="전수 구간 비중 · 근거 ' + trendEv + '">전수 ' + tr.first.toFixed(1) + '%→' + tr.last.toFixed(1) + '%<span class="arr ' + tr.dir + '">' + arrow + '</span></span>';
-    ih += '<span class="sev ' + sev.cls + '" title="심각도 추론값 — 노션 교정 대상">심각도 ' + ins.severity.level + '</span>';
+    ih += '<span class="sev ' + sev.cls + '" title="심각도 추론값 — 확정 집계로 교정 대상">심각도 ' + ins.severity.level + '</span>';
     ih += '<span class="sum-prio">' + ins.priorityTier + '</span>';
     ih += '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>';
     ih += '</span></summary><div class="i-body">';
     ih += '<div class="i-block"><div class="bt">현황</div><ul>' + liList(ins.facts, "fact", "사실") + '</ul></div>';
-    ih += '<div class="i-block"><div class="bt">심각도</div><div class="i-rat"><span class="badge infer">추론</span><b>' + ins.severity.level + '</b> — ' + ins.severity.basis + ' <span class="ev">(노션 확정치로 교정 대상)</span></div></div>';
+    ih += '<div class="i-block"><div class="bt">심각도</div><div class="i-rat"><span class="badge infer">추론</span><b>' + ins.severity.level + '</b> — ' + ins.severity.basis + ' <span class="ev">(확정 집계로 교정 대상)</span></div></div>';
     ih += '<div class="i-block"><div class="bt">추이 해석 (시나리오)</div><ul>' + liList(ins.scenarios, "infer", "추론") + '</ul></div>';
     ih += '<div class="i-block"><div class="bt">핵심 마찰 지점 (사용자 여정)</div><ul>' + liList(ins.frictions) + '</ul></div>';
     ih += '<div class="i-block"><div class="bt">UXD 개선안</div><ul>' + ins.improvements.map(function (im) { return '<li><span class="lvl">' + im.level + '</span>' + im.text + '</li>'; }).join("") + '</ul></div>';
@@ -454,7 +466,7 @@
   var b = D.returnBundle;
   document.getElementById("bundle-box").innerHTML =
     '<div class="callout blue" style="margin-top:0">' +
-    '<span class="badge fact">사실</span><b>' + b.keys.map(catFull).join(" + ") + " = " + fmt(b.total) + "건 (" + b.evidence + ")</b> — 단일 최대 페인포인트 묶음.<br>" +
+    '<span class="badge fact">사실</span>' + b.keys.map(catTag).join(" + ") + ' <b>= ' + fmt(b.total) + "건 (" + b.evidence + ")</b> — 단일 최대 페인포인트 묶음.<br>" +
     '<span class="badge fact">사실</span>과거 1년 구간 반납 관련 비중 ' + b.past5Share + " (" + b.past5ShareSource + ")로 방향 일치.<br>" +
     '<span class="badge infer">추론</span>수집 기준이 세 번 바뀌어도 반납 단계가 일관되게 최대 마찰 — 반납 경험(사진 절차 → 만차/위치 → 특수 안내)을 한 여정으로 묶어 개선하는 편이 효과적.' +
     '</div>';
