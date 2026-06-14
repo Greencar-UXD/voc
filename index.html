@@ -145,6 +145,29 @@
   .dist-val { font-size: 12px; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .dist-val b { color: var(--ink); font-weight: 800; }
 
+  /* 업로드·분류 패널 */
+  .up-priv { display:inline-block; font-size:11.5px; font-weight:700; color:#2f7d4f; background:#e7f4ec; padding:3px 10px; border-radius:999px; }
+  #up-drop { border:2px dashed #cfd3d8; border-radius:12px; padding:30px 18px; text-align:center; color:var(--ink-2); cursor:pointer; background:#fafbfc; transition:.15s; }
+  #up-drop.over { border-color:#3f6bd6; background:#eef3fe; color:#2b4fa0; }
+  #up-drop b { color:var(--ink); }
+  .up-meta { font-size:12.5px; color:var(--ink-2); margin-top:12px; }
+  .up-ignored { font-size:11.5px; color:var(--ink-3); margin-top:6px; word-break:break-all; }
+  .up-table-wrap { max-height:420px; overflow:auto; border:1px solid var(--line-2); border-radius:10px; margin-top:14px; }
+  #up-tbl { border-collapse:collapse; width:100%; font-size:12.5px; }
+  #up-tbl th, #up-tbl td { border-bottom:1px solid var(--line-2); padding:7px 9px; text-align:left; vertical-align:top; }
+  #up-tbl th { background:#fafbfc; font-weight:700; color:var(--ink-2); font-size:11px; position:sticky; top:0; }
+  #up-tbl tr.low { background:#fbf0e6; }
+  #up-tbl select { font:inherit; font-size:12px; border:1px solid var(--line); border-radius:7px; padding:4px 6px; max-width:230px; }
+  .up-conf { font-size:10.5px; font-weight:700; padding:1px 7px; border-radius:999px; white-space:nowrap; }
+  .up-conf.hi { color:#2f7d4f; background:#e7f4ec; } .up-conf.mid { color:#5c626b; background:#eef0f2; } .up-conf.lo { color:#b4540a; background:#fbf0e6; }
+  .up-tally { display:flex; flex-wrap:wrap; gap:7px; margin-top:14px; }
+  .up-settings { display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; margin-top:14px; }
+  .up-fld label { display:block; font-size:11.5px; color:var(--ink-3); margin-bottom:4px; }
+  .up-fld input { font:inherit; border:1px solid var(--line); border-radius:8px; padding:7px 10px; width:130px; }
+  .up-out { width:100%; font-family:ui-monospace,Menlo,monospace; font-size:12px; border:1px solid var(--line); border-radius:10px; padding:12px; min-height:90px; background:#fafbfc; margin-top:10px; }
+  .up-btn { font:inherit; font-size:13px; border:1px solid var(--accent); background:var(--accent); color:#fff; border-radius:9px; padding:7px 15px; cursor:pointer; margin-top:10px; margin-right:8px; }
+  .up-btn.ghost { background:#fff; color:var(--ink-2); border-color:var(--line); }
+
   footer { color: var(--ink-3); font-size: 11.5px; margin-top: 34px; text-align: center; }
 
   @media (max-width: 620px) { .sum-right { width: 100%; margin-left: 0; } .kpi .v { font-size: 22px; } .dist-row { grid-template-columns: 1fr; gap: 5px; } .dist-bar { height: 12px; } }
@@ -159,6 +182,7 @@
   </header>
 
   <nav class="toc">
+    <a href="#sec-upload">📥 업로드</a>
     <a href="#sec-full">전수 구간 현황</a>
     <a href="#sec-cum">누적 분포</a>
     <a href="#sec-stack">카테고리 구성</a>
@@ -169,6 +193,39 @@
   </nav>
 
   <div class="kpis" id="kpis" style="margin-bottom:30px"></div>
+
+  <!-- 데이터 업로드 · 분류 (대시보드 내장) -->
+  <section id="sec-upload">
+    <div class="s-head"><h2>데이터 업로드 · 분류</h2><span class="h-meta">엑셀 → 자동 분류 → 집계</span></div>
+    <p class="s-note"><span class="up-priv">🔒 브라우저 안에서만 처리 — 식별정보(고객번호·차량번호·차고지)는 읽지 않고 버립니다</span> · 분류는 키워드 1차 + 사람 확인(주황 행).</p>
+    <details class="plain" id="up-details">
+      <summary><span>📥 엑셀 올려서 분류하기 — 펼치기</span></summary>
+      <div class="p-body">
+        <div id="up-drop"><b>여기로 .xlsx 파일을 끌어다 놓거나</b> 클릭해서 선택</div>
+        <input type="file" id="up-file" accept=".xlsx,.xls" style="display:none">
+        <div id="up-loading" style="display:none;color:var(--ink-3);margin-top:12px">엑셀 라이브러리 로딩 중…</div>
+        <div class="up-meta" id="up-loadInfo" style="display:none"></div>
+        <div class="up-ignored" id="up-ignored" style="display:none"></div>
+        <div id="up-verifyWrap" style="display:none">
+          <div class="up-table-wrap"><table id="up-tbl"><thead><tr><th style="width:26px">#</th><th>후기 (비식별)</th><th style="width:230px">분류</th><th style="width:62px">신뢰도</th></tr></thead><tbody></tbody></table></div>
+          <div class="up-tally" id="up-tally"></div>
+          <div class="total" id="up-total" style="margin-top:10px"></div>
+          <div id="up-unknownWarn" style="display:none;color:#b4540a;font-weight:700;font-size:12.5px;margin-top:8px"></div>
+          <div class="up-settings">
+            <div class="up-fld"><label>월 (ym)</label><input id="up-ym" placeholder="2026-07"></div>
+            <div class="up-fld"><label>수집 일수</label><input id="up-days" type="number" min="1" value="30"></div>
+            <div class="up-fld"><label><input type="checkbox" id="up-partial" style="width:auto"> 진행 중</label></div>
+          </div>
+          <textarea class="up-out" id="up-out" readonly placeholder="'엔트리 생성'을 누르면 data.js에 넣을 줄이 만들어집니다."></textarea>
+          <div>
+            <button class="up-btn" id="up-gen">엔트리 생성</button>
+            <button class="up-btn ghost" id="up-copy">📋 복사</button>
+          </div>
+          <p class="s-note" style="margin-top:10px">이 줄을 그대로 Claude에게 주시면 누적·인사이트까지 반영해 배포합니다. (이 패널은 분류·집계까지만 — data.js를 직접 바꾸진 않습니다)</p>
+        </div>
+      </div>
+    </details>
+  </section>
 
   <!-- 전수 구간 현황 (비교 가능 구간을 최상단으로) -->
   <section id="sec-full">
@@ -477,6 +534,129 @@
   /* ── 데이터 한계 ── */
   document.getElementById("limit-summary").innerHTML = "데이터 한계 " + D.limitations.length + "가지 — 펼쳐서 확인";
   document.getElementById("limitations").innerHTML = D.limitations.map(function (t) { return '<li><span class="badge fact">사실</span>' + t + "</li>"; }).join("");
+})();
+</script>
+
+<!-- ── 업로드·분류 (대시보드 내장, SheetJS는 펼칠 때만 로드) ── -->
+<script>
+(function () {
+  "use strict";
+  var D = window.VOC_DATA, CATS = D.categories;
+  var COLORS = { c1:"#4e79a7",c2:"#e8893f",c3:"#59a14f",c4:"#d9534f",c5:"#56a8a3",c6:"#dcab3c",c7:"#9a6fb0",c8:"#e391a0",c9:"#8d6e63",c10:"#7fb1ab" };
+
+  var KW = {
+    c1:["차를 찾","차 찾","찾는게","찾기 ","찾을때","찾기힘","찾기 힘","못 찾","못찾","어디 있","어디있","위치 안내","표식","팻말","차고지","넓은","주차장이 커","주차장크기"],
+    c2:["사진","촬영","찍","트렁크","내부사진","반납 절차","반납절차","반납장소","반납 장소","차문을 다시","문을 다시","다시 개방","강제","단계가","단계 가"],
+    c3:["매너평가","매너 평가","평가 ","문 잠","문이 잠","잠겼"],
+    c4:["주유","기름","연료","페널티","패널티"],
+    c5:["스마트키","위젯","경적","비상등","잠금","해제","어플","앱 진입","상태바"],
+    c6:["사용법","조작","시동","기어","충전 ","가이드","사용 방법"],
+    c7:["고객센터","상담","연결이","대기 ","전화","문의","고객 센터"],
+    c8:["개털","강아지","애완","반려","냄새","흡연","담배","청결","더럽","오염","털날","털 날"],
+    c9:["만차","자리가 부족","자리 부족","자리가 없","자리가없","외부차량","외부 차량","지카존","주차자리","주차 자리","주차할","주차 공간","주차자리가"],
+    c10:["특수 반납","예외","시간 외","시간외"]
+  };
+  function classify(text) {
+    var t = (text || "").toLowerCase(), score = {}; CATS.forEach(function (c) { score[c.key] = 0; });
+    Object.keys(KW).forEach(function (k) { KW[k].forEach(function (w) { if (t.indexOf(w.toLowerCase()) >= 0) score[k] += 1; }); });
+    var hasReturn = /반납/.test(t), hasPhoto = /(사진|촬영|찍)/.test(t), hasFind = /(찾|위치|표식|팻말|차고지)/.test(t);
+    if (hasReturn && hasPhoto) score.c2 += 2; if (hasFind && !hasReturn) score.c1 += 1;
+    var best = null, bs = 0, sec = 0;
+    Object.keys(score).forEach(function (k) { if (score[k] > bs) { sec = bs; bs = score[k]; best = k; } else if (score[k] > sec) { sec = score[k]; } });
+    return { cat: bs > 0 ? best : "unknown", conf: bs === 0 ? 0.2 : Math.min(0.95, 0.5 + 0.12 * bs + 0.18 * (bs - sec)) };
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var det = $("up-details"), pendingFile = null, xlsxReady = (typeof XLSX !== "undefined"), xlsxLoading = false;
+
+  det.addEventListener("toggle", function () { if (det.open && !xlsxReady) loadXlsx(); });
+  function loadXlsx() {
+    if (xlsxReady || xlsxLoading) return;
+    xlsxLoading = true; $("up-loading").style.display = "block";
+    var s = document.createElement("script"); s.src = "lib/xlsx.full.min.js";
+    s.onload = function () { xlsxReady = true; xlsxLoading = false; $("up-loading").style.display = "none"; if (pendingFile) { var f = pendingFile; pendingFile = null; read(f); } };
+    s.onerror = function () { xlsxLoading = false; $("up-loading").textContent = "엑셀 라이브러리 로드 실패 — 새로고침 후 다시 시도하세요."; };
+    document.head.appendChild(s);
+  }
+
+  var drop = $("up-drop"), fileInput = $("up-file");
+  drop.addEventListener("click", function () { fileInput.click(); });
+  drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
+  drop.addEventListener("drop", function (e) { e.preventDefault(); drop.classList.remove("over"); if (e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]); });
+  fileInput.addEventListener("change", function () { if (fileInput.files[0]) handle(fileInput.files[0]); });
+  function handle(file) { if (!xlsxReady) { pendingFile = file; $("up-loading").style.display = "block"; loadXlsx(); } else read(file); }
+
+  var rows = [];
+  function read(file) {
+    var fr = new FileReader();
+    fr.onload = function () {
+      var wb = XLSX.read(new Uint8Array(fr.result), { type: "array" });
+      var aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: "" });
+      if (!aoa.length) { alert("빈 시트입니다."); return; }
+      var headers = aoa[0].map(function (h) { return String(h).trim(); });
+      var ri = headers.findIndex(function (h) { return /후기/.test(h); });
+      if (ri < 0) ri = headers.findIndex(function (h) { return /(내용|의견|comment|review)/i.test(h); });
+      if (ri < 0) { alert("'후기'가 포함된 열을 찾지 못했습니다."); return; }
+      var ignored = headers.filter(function (h, i) { return i !== ri && h; });
+      rows = [];
+      for (var r = 1; r < aoa.length; r++) {
+        var txt = String(aoa[r][ri] || "").trim(); if (!txt) continue;
+        var c = classify(txt); rows.push({ text: txt, cat: c.cat, conf: c.conf });
+      }
+      $("up-loadInfo").innerHTML = "<b>" + rows.length + "건</b> 로드 · 후기 컬럼: <b>'" + headers[ri] + "'</b>";
+      $("up-loadInfo").style.display = "block";
+      $("up-ignored").innerHTML = "🔒 읽지 않고 버린 컬럼(" + ignored.length + "개): " + ignored.join(" · ");
+      $("up-ignored").style.display = "block";
+      $("up-verifyWrap").style.display = "block";
+      try { var d = new Date(); $("up-ym").value = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); } catch (e) {}
+      renderTable(); renderTally();
+    };
+    fr.readAsArrayBuffer(file);
+  }
+
+  function esc(s) { return s.replace(/[&<>]/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[m]; }).slice(0, 300); }
+  function confCls(c) { return c >= 0.7 ? "hi" : (c >= 0.55 ? "mid" : "lo"); }
+  function renderTable() {
+    var tb = document.querySelector("#up-tbl tbody"); tb.innerHTML = "";
+    rows.forEach(function (row, i) {
+      var tr = document.createElement("tr"); if (row.conf < 0.55) tr.className = "low";
+      var opts = CATS.map(function (c) { return '<option value="' + c.key + '"' + (c.key === row.cat ? " selected" : "") + '>카테고리 ' + c.num + ' ' + c.name + '</option>'; }).join("")
+        + '<option value="unknown"' + (row.cat === "unknown" ? " selected" : "") + '>미분류(확인필요)</option>';
+      tr.innerHTML = '<td>' + (i + 1) + '</td><td>' + esc(row.text) + '</td><td><select data-i="' + i + '">' + opts + '</select></td>'
+        + '<td><span class="up-conf ' + confCls(row.conf) + '">' + Math.round(row.conf * 100) + '%</span></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll("select").forEach(function (sel) { sel.addEventListener("change", function () { rows[+sel.dataset.i].cat = sel.value; renderTally(); }); });
+  }
+  function renderTally() {
+    var cnt = {}; CATS.forEach(function (c) { cnt[c.key] = 0; }); var unk = 0;
+    rows.forEach(function (r) { if (r.cat === "unknown") unk++; else cnt[r.cat]++; });
+    var html = ""; CATS.forEach(function (c) {
+      if (cnt[c.key] > 0) html += '<span class="ctag" style="--cc:' + COLORS[c.key] + '"><span class="ctag-n">카테고리 ' + c.num + '</span><span class="ctag-nm">' + c.name + '</span> <b style="margin-left:4px">' + cnt[c.key] + '</b></span>';
+    });
+    $("up-tally").innerHTML = html || '<span style="color:var(--ink-3)">아직 분류된 항목 없음</span>';
+    var total = rows.length - unk;
+    $("up-total").innerHTML = '분류 합계 <b>' + total + '</b>건 <small style="font-weight:600;color:var(--ink-3)">/ 전체 ' + rows.length + '건</small>';
+    var uw = $("up-unknownWarn");
+    if (unk > 0) { uw.style.display = "block"; uw.textContent = "⚠ 미분류 " + unk + "건 — 드롭다운에서 분류를 확정하세요(집계 제외됨)."; } else uw.style.display = "none";
+    window._upCnt = cnt; window._upUnk = unk; window._upTotal = total;
+  }
+
+  $("up-gen").addEventListener("click", function () {
+    if (window._upUnk > 0 && !confirm("미분류 " + window._upUnk + "건이 있습니다. 제외하고 생성할까요?")) return;
+    var ym = ($("up-ym").value || "YYYY-MM").trim(), days = parseInt($("up-days").value, 10) || 0, partial = $("up-partial").checked;
+    var cnt = window._upCnt, catStr = CATS.map(function (c) { return "c" + c.num + ": " + cnt[c.key]; }).join(", ");
+    var line = '    { ym: "' + ym + '", total: ' + window._upTotal + ', regime: "full", days: ' + days
+      + (partial ? ', partial: true, partialLabel: "' + days + '일치 진행 중"' : '')
+      + ',\n      categories: { ' + catStr + ' } },';
+    $("up-out").value = "// data.js 의 months 배열 끝에 추가:\n" + line + "\n\n// ※ 누적·인사이트 반영은 Claude에게 이 줄을 주세요.";
+  });
+  $("up-copy").addEventListener("click", function () {
+    var ta = $("up-out"); ta.removeAttribute("readonly"); ta.select();
+    try { navigator.clipboard.writeText(ta.value); } catch (e) { try { document.execCommand("copy"); } catch (e2) {} }
+    ta.setAttribute("readonly", ""); var b = this; b.textContent = "✓ 복사됨"; setTimeout(function () { b.textContent = "📋 복사"; }, 1500);
+  });
 })();
 </script>
 </body>
