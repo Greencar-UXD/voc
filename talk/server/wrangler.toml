@@ -1,0 +1,17 @@
+name = "family-sms"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# ── 공개해도 되는 설정 ──
+# 발신번호: Solapi에 "사전등록"한 본인 휴대폰 번호 (한국 법규상 등록 번호로만 발송 가능)
+# 받는 번호: 가족 휴대폰 번호들을 쉼표로 구분
+[vars]
+SENDER = "01000000000"
+RECIPIENTS = "01011112222,01033334444"
+PREFIX = "[가족 음성메시지]\n"
+ALLOW_ORIGIN = "*"
+
+# ── 비밀값은 여기 적지 말고 아래 명령으로 등록하세요 ──
+#   wrangler secret put SOLAPI_API_KEY
+#   wrangler secret put SOLAPI_API_SECRET
+#   wrangler secret put SHARED_SECRET     # (선택) 앱 CONFIG.SEND_PASSCODE 와 동일하게

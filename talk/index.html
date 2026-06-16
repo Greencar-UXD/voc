@@ -90,6 +90,18 @@
   body.listening #mainBtn:active { background: var(--stop-press); }
   #mainBtn:disabled { background: #aeb6c2; box-shadow: none; cursor: default; }
 
+  /* 가족에게 문자 보내기 (초록 버튼) */
+  #sendBtn {
+    width: 100%; min-height: 78px; margin-top: 12px; border: none; border-radius: 20px;
+    font-family: inherit; font-size: 23px; font-weight: 800; letter-spacing: -0.5px;
+    color: #fff; background: var(--ok); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 6px 18px rgba(31,138,76,.28); transition: transform .06s, background .15s;
+  }
+  #sendBtn:active { transform: scale(.985); background: #196f3d; }
+  #sendBtn:disabled { background: #9fc4ad; box-shadow: none; cursor: default; }
+  #sendBtn[hidden] { display: none; }
+
   /* 듣는 중 펄스 표시 */
   .pulse { display: inline-flex; align-items: center; gap: 5px; }
   .pulse i { width: 6px; height: 20px; background: rgba(255,255,255,.9); border-radius: 3px; animation: eq 1s ease-in-out infinite; }
@@ -142,6 +154,7 @@
     <button id="mainBtn" type="button" aria-label="말하기 시작">
       <span class="ico" aria-hidden="true">🎤</span><span id="btnLabel">눌러서 말하기</span>
     </button>
+    <button id="sendBtn" type="button" hidden>📨 가족에게 문자 보내기</button>
     <div class="sub">
       <button id="clearBtn" type="button" hidden>🧹 화면 지우기</button>
     </div>
@@ -151,6 +164,14 @@
 (function () {
   "use strict";
 
+  // ── 가족 문자 보내기 설정 ──
+  // 백엔드(Cloudflare Worker)를 배포한 뒤 아래 두 값을 채우면 "가족에게 문자 보내기" 버튼이 나타납니다.
+  // WORKER_URL 이 비어 있으면 음성→글자 기능만 동작합니다(문자 버튼 숨김).
+  var CONFIG = {
+    WORKER_URL: "",      // 예: "https://family-sms.내계정.workers.dev/"
+    SEND_PASSCODE: ""    // Worker의 SHARED_SECRET 과 동일하게 (남용 방지용 간단 암호)
+  };
+
   // ── DOM ──
   var body     = document.body;
   var textEl   = document.getElementById("text");
@@ -159,6 +180,7 @@
   var btnLabel = document.getElementById("btnLabel");
   var btnIco   = mainBtn.querySelector(".ico");
   var clearBtn = document.getElementById("clearBtn");
+  var sendBtn  = document.getElementById("sendBtn");
   var noticeEl = document.getElementById("notice");
   var fontUp   = document.getElementById("fontUp");
   var fontDown = document.getElementById("fontDown");
@@ -244,6 +266,7 @@
       mainBtn.setAttribute("aria-label", "말하기 시작");
       clearBtn.hidden = !finalText;
     }
+    updateSendBtn();
   }
 
   // ── 음성인식 만들기 ──
@@ -300,6 +323,7 @@
     hideNotice();
     finalText = "";
     interimText = "";
+    resetSendBtn();
     setMode(true);
     setStatus("듣고 있어요…");
     render();
@@ -349,9 +373,50 @@
   function clearScreen() {
     finalText = "";
     interimText = "";
+    resetSendBtn();
     setMode(false);
     setStatus("");
     render();
+  }
+
+  // ── 가족에게 문자 보내기 ──
+  function resetSendBtn() {
+    sendBtn.disabled = false;
+    sendBtn.textContent = "📨 가족에게 문자 보내기";
+  }
+
+  function updateSendBtn() {
+    // WORKER_URL이 설정돼 있고, 듣는 중이 아니며, 완성된 문장이 있을 때만 보이기
+    sendBtn.hidden = !(CONFIG.WORKER_URL && finalText && !listening);
+  }
+
+  function sendToFamily() {
+    if (!finalText || sendBtn.disabled) return;
+    sendBtn.disabled = true;
+    sendBtn.textContent = "보내는 중…";
+    setStatus("가족에게 문자를 보내고 있어요…");
+    fetch(CONFIG.WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: finalText, passcode: CONFIG.SEND_PASSCODE })
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (data) {
+        return { ok: res.ok, status: res.status, data: data };
+      });
+    }).then(function (r) {
+      if (r.ok && r.data && r.data.ok) {
+        sendBtn.textContent = "✅ 보냈어요";
+        setStatus("가족 " + (r.data.count || "") + "명에게 문자를 보냈어요.");
+      } else {
+        sendBtn.disabled = false;
+        sendBtn.textContent = "📨 다시 보내기";
+        setStatus("문자 보내기 실패: " + ((r.data && r.data.error) || ("오류 " + r.status)));
+      }
+    }).catch(function () {
+      sendBtn.disabled = false;
+      sendBtn.textContent = "📨 다시 보내기";
+      setStatus("문자 보내기 실패: 인터넷 연결을 확인해 주세요.");
+    });
   }
 
   // ── 버튼 연결 ──
@@ -360,6 +425,7 @@
     else start();
   });
   clearBtn.addEventListener("click", clearScreen);
+  sendBtn.addEventListener("click", sendToFamily);
 
   // 듣는 중 화면이 꺼지거나 탭을 벗어나면 안전하게 마무리
   document.addEventListener("visibilitychange", function () {
