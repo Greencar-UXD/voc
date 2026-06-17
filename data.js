@@ -63,13 +63,13 @@ window.VOC_DATA = {
 
   /* 누적 확정치 (2026-06-10 확정 집계 기준) */
   cumulative: {
-    total: 3269,
-    byRegime: { full: 1037, excerpt: 506, past5: 1726 },
-    byCategory: { c2: 2117, c1: 355, c5: 180, c4: 176, c3: 131, c7: 103, c9: 70, c6: 57, c8: 42, c10: 38 }
+    total: 3279,
+    byRegime: { full: 1047, excerpt: 506, past5: 1726 },
+    byCategory: { c2: 2118, c1: 359, c5: 180, c4: 179, c3: 131, c7: 103, c9: 71, c6: 57, c8: 42, c10: 39 }
   },
 
   /* 전수(정기) 구간 일수 — 일평균 계산용. 2026.04(30일) + 2026.05(31일) + 2026.06 진행분(9일) */
-  fullRegime: { days: 75, label: "2026.04.01 ~ 2026.06.15 (75일, 06-10 미반영)" },
+  fullRegime: { days: 76, label: "2026.04.01 ~ 2026.06.16 (76일, 06-10 미반영)" },
 
   /* 월별 데이터 — 시간 축은 오직 월 단위.
    * categories: 해당 월에 확인된 카테고리별 건수만 기재 (없는 키 = 해당 구간 미수집 또는 미확인)
@@ -95,8 +95,8 @@ window.VOC_DATA = {
       categories: { c1: 62, c2: 157, c3: 20, c4: 56, c5: 30, c6: 15, c7: 65, c8: 10, c9: 25, c10: 25 } },
     { ym: "2026-05", total: 410, regime: "full", days: 31,
       categories: { c1: 103, c2: 88, c3: 17, c4: 68, c5: 23, c6: 24, c7: 30, c8: 20, c9: 28, c10: 9 } },
-    { ym: "2026-06", total: 162, regime: "full", days: 14, partial: true, partialLabel: "14일치 진행 중",
-      categories: { c1: 54, c2: 21, c3: 7, c4: 33, c5: 4, c6: 9, c7: 5, c8: 12, c9: 14, c10: 3 } }
+    { ym: "2026-06", total: 172, regime: "full", days: 15, partial: true, partialLabel: "15일치 진행 중",
+      categories: { c1: 58, c2: 22, c3: 7, c4: 36, c5: 4, c6: 9, c7: 5, c8: 12, c9: 15, c10: 4 } }
   ],
 
   /* 반납 묶음 인사이트: 카테고리 2 + 카테고리 9 + 카테고리 10 */
