@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G car 후기 원문 — 카테고리별 | VOC 대시보드</title>
+<meta name="description" content="분류 확정된 사용 후기 원문을 카테고리별로 — 반복 키워드·감정 톤·전체 맥락">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23436378'/><text x='50' y='56' font-size='62' font-weight='800' fill='white' text-anchor='middle' dominant-baseline='central' font-family='sans-serif'>G</text></svg>">
+<script src="data.js"></script>
+<script src="voc-raw.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendard-dynamic-subset.min.css">
+<style>
+  :root {
+    --bg:#f4f6f7; --card:#fff; --line:#e4e8ea; --line-2:#eef1f2;
+    --ink:#16242e; --ink-2:#4a5560; --ink-3:#6b7680; --navy:#436378; --navy-deep:#22384a; --navy-bg:#eaf1f4;
+    --up:#c0531f; --num:"Pretendard Variable","Pretendard","Noto Sans KR",sans-serif;
+  }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-size:14px; line-height:1.6; -webkit-font-smoothing:antialiased;
+    font-family:"Pretendard Variable","Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",-apple-system,sans-serif; }
+  .wrap { max-width:920px; margin:0 auto; padding:0 22px 80px; }
+  a { color:var(--navy); }
+  header.top { padding:26px 0 12px; }
+  header.top .back { font-size:12px; color:var(--ink-3); text-decoration:none; }
+  header.top .back:hover { color:var(--navy); }
+  header.top h1 { font-size:23px; margin:6px 0 5px; letter-spacing:-.4px; }
+  header.top .sub { font-size:13px; color:var(--ink-2); }
+  header.top .note { font-size:12px; color:var(--ink-3); margin-top:6px; }
+  header.top .note b { color:var(--up); }
+
+  .controls { position:sticky; top:0; z-index:20; background:rgba(244,246,247,.9); backdrop-filter:blur(8px);
+    padding:12px 0; margin-bottom:16px; border-bottom:1px solid var(--line); }
+  .search { width:100%; font:inherit; font-size:14px; padding:10px 13px; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); }
+  .search::placeholder { color:var(--ink-3); }
+  .chips { display:flex; gap:6px; overflow-x:auto; padding-top:10px; }
+  .chip { flex:0 0 auto; font:inherit; font-size:12px; font-weight:700; color:var(--ink-2); background:#fff; border:1px solid var(--line); border-radius:999px; padding:5px 12px; cursor:pointer; white-space:nowrap; }
+  .chip:hover { background:#eef1f2; }
+  .chip.active { background:var(--navy); border-color:var(--navy); color:#fff; }
+  .chip .n { opacity:.7; font-weight:600; margin-left:3px; }
+
+  .catsec { margin-bottom:30px; scroll-margin-top:120px; }
+  .cat-head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+  .cat-pill { display:inline-flex; align-items:center; font-size:13px; font-weight:800; color:#fff; padding:3px 11px; border-radius:999px; }
+  .cat-title { font-size:17px; font-weight:800; letter-spacing:-.3px; }
+  .cat-count { font-size:12px; color:var(--ink-3); font-family:var(--num); font-variant-numeric:tabular-nums; }
+  .senti { margin-left:auto; font-size:12px; font-weight:700; padding:3px 11px; border-radius:999px; white-space:nowrap; }
+  .senti .rec { font-family:var(--num); }
+
+  .kw { display:flex; flex-wrap:wrap; gap:6px; margin:2px 0 13px; }
+  .kw .k { font-size:12px; font-weight:600; color:var(--navy-deep); background:var(--navy-bg); border-radius:7px; padding:3px 9px; }
+  .kw .k b { font-family:var(--num); font-variant-numeric:tabular-nums; font-weight:800; margin-left:4px; color:var(--navy); }
+  .kw .kwlab { font-size:12px; color:var(--ink-3); align-self:center; margin-right:2px; }
+
+  .rev { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 15px; margin-bottom:8px; }
+  .rev-meta { display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; }
+  .rev-date { font-size:12px; color:var(--ink-3); font-family:var(--num); font-variant-numeric:tabular-nums; }
+  .rev-scores { display:flex; gap:5px; flex-wrap:wrap; }
+  .sc { font-size:11px; color:var(--ink-2); background:#f1f3f4; border-radius:5px; padding:1px 6px; font-variant-numeric:tabular-nums; }
+  .sc.rec-low { color:#fff; background:var(--up); }
+  .sc.rec-hi { color:#fff; background:var(--navy); }
+  .rev-text { font-size:14px; color:var(--ink); line-height:1.65; white-space:pre-wrap; word-break:break-word; }
+  mark { background:#fde9c8; color:inherit; border-radius:3px; padding:0 1px; }
+  .empty { color:var(--ink-3); font-size:13px; padding:30px 0; text-align:center; }
+  footer { color:var(--ink-3); font-size:12px; margin-top:30px; text-align:center; }
+  a.focusable:focus-visible, .chip:focus-visible, .search:focus-visible { outline:2px solid var(--navy); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="back focusable" href="index.html">← VOC 대시보드로</a>
+    <h1>후기 원문 — 카테고리별</h1>
+    <div class="sub">분류 확정된 사용 후기를 카테고리별로 모았습니다 — 반복 키워드 · 감정 톤 · 전체 맥락.</div>
+    <div class="note" id="meta-note"></div>
+  </header>
+
+  <div class="controls">
+    <input class="search" id="q" type="search" placeholder="후기 검색 (예: 반납, 주유, 담배, 위치…)" autocomplete="off">
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div id="cats"></div>
+  <footer id="footer"></footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var D = window.VOC_DATA, R = window.VOC_RAW;
+  function cat(key){ return D.categories.find(function(c){return c.key===key;}); }
+  var CAT_COLORS = { c1:"#4e79a7", c2:"#22384a", c3:"#59a14f", c4:"#d9534f", c5:"#56a8a3", c6:"#dcab3c", c7:"#9a6fb0", c8:"#e391a0", c9:"#8d6e63", c10:"#7fb1ab" };
+
+  document.getElementById("meta-note").innerHTML = "기간 " + R.meta.period + " · 총 <b>" + R.meta.total + "건</b> (분류 확정분) · <b>고객번호 등 개인정보는 제외</b>했습니다.";
+  document.getElementById("footer").textContent = "후기 원문 — 분류 확정분만 · 고객번호 미포함 · 누적 확대 예정";
+
+  // ── 한국어 키워드 추출 (간이 빈도) ──
+  var STOP = ("너무 좀 정말 진짜 그냥 같아요 같습니다 있어요 있습니다 합니다 해주세요 했어요 하는 하고 그리고 근데 좋겠어요 좋겠습니다 좋아요 좋았어요 입니다 거의 그게 이게 저게 우리 제가 저는 너무너무 했는데 하는데 되는 되요 돼요 한번 다시 항상 자주 계속 그런 이런 저런 어떤 무슨 정도 부분 경우 때문 통해 위해 대한 라고 하지 면서 으로 에서 에게 한테 까지 부터 보다 처럼 만큼 그리 매우 아주 조금 많이 빨리 다들 모두 거나 이나 이랑 또는 그래서 하지만 그런데 근처 오늘 어제 이번 지난 그때").split(/\s+/);
+  var STOPSET = {}; STOP.forEach(function(s){ STOPSET[s]=1; });
+  var TAIL = /(합니다|입니다|습니다|했어요|해주세요|해주시|해요|하는|되는|된다|돼요|되요|드려요|드립니다|좋겠어요|좋겠습니다|있어요|있습니다)$/;
+  var JOSA = /(으로|에서|에게|한테|까지|부터|보다|처럼|만큼|이라고|라고|이나|에는|에도|은|는|이|가|을|를|에|의|도|만|로|와|과)$/;
+  function norm(w){
+    w = w.replace(TAIL, "");
+    if (w.length > 2) w = w.replace(JOSA, "");
+    return w;
+  }
+  function tokens(t){
+    return (t.match(/[가-힣]{2,}|[A-Za-z]{2,}/g) || []).map(norm)
+      .filter(function(w){ return !STOPSET[w] && w.length>=2 && w.length<=8; });
+  }
+  function topKeywords(list, n){
+    var c = {};
+    list.forEach(function(it){ var seen={}; tokens(it.t).forEach(function(w){ if(seen[w])return; seen[w]=1; c[w]=(c[w]||0)+1; }); });
+    return Object.keys(c).map(function(w){ return {w:w,n:c[w]}; })
+      .filter(function(x){ return x.n>=2; })
+      .sort(function(a,b){ return b.n-a.n || b.w.length-a.w.length; }).slice(0,n);
+  }
+  // ── 감정 톤 (추천의향 평균 + 부정 신호) ──
+  var NEG = /불편|불만|짜증|최악|화가|화나|별로|안돼|안 돼|안되|안됨|안 됨|못[ ]?찾|못[ ]?타|없어|없습|없네|지저분|더럽|냄새|담배|힘들|당황|실망|아쉽|부족|오류|불친절|비싸|빡|제발|시간[ ]?낭비|낭비|헤매|헤멤/g;
+  function sentiment(list){
+    var rs = list.map(function(it){ return +it.s.rec; }).filter(function(v){ return !isNaN(v); });
+    var avg = rs.length ? rs.reduce(function(a,b){return a+b;},0)/rs.length : null;
+    var neg = list.reduce(function(a,it){ return a + ((it.t.match(NEG)||[]).length); }, 0);
+    var label, color, bg;
+    if (avg===null) { label="—"; }
+    else if (avg < 5) { label="분노·불만 강함"; }
+    else if (avg < 7.5) { label="불만·아쉬움"; }
+    else if (avg < 9) { label="중립·개선 요청"; }
+    else { label="대체로 만족 속 개선 요청"; }
+    return { avg:avg, neg:neg, label:label };
+  }
+  function sentiColor(avg){
+    if (avg===null) return {c:"var(--ink-2)",b:"#eef1f2"};
+    if (avg < 5) return {c:"#fff",b:"var(--up)"};
+    if (avg < 7.5) return {c:"#8a3c12",b:"#fbe7da"};
+    if (avg < 9) return {c:"var(--ink-2)",b:"#eef1f2"};
+    return {c:"var(--navy)",b:"var(--navy-bg)"};
+  }
+  function esc(s){ return s.replace(/[&<>]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[m];}); }
+  function scoreBadges(s){
+    var out="";
+    var rec=+s.rec;
+    if(!isNaN(rec)){ var cls = rec<=4?"sc rec-low":(rec>=9?"sc rec-hi":"sc"); out+='<span class="'+cls+'">추천 '+rec+'</span>'; }
+    out+='<span class="sc">앱 '+s.app+'</span>';
+    return out;
+  }
+
+  var order = Object.keys(R.byCat).filter(function(k){ return R.byCat[k] && R.byCat[k].length; })
+    .sort(function(a,b){ return R.byCat[b].length - R.byCat[a].length; });
+
+  // chips
+  var chips = '<button class="chip active" data-k="all">전체<span class="n">'+R.meta.total+'</span></button>';
+  order.forEach(function(k){ chips += '<button class="chip" data-k="'+k+'">'+cat(k).num+' '+cat(k).name+'<span class="n">'+R.byCat[k].length+'</span></button>'; });
+  document.getElementById("chips").innerHTML = chips;
+
+  // render sections
+  var html = "";
+  order.forEach(function(k){
+    var list = R.byCat[k].slice().sort(function(a,b){ return a.d-b.d; });
+    var col = CAT_COLORS[k], c = cat(k);
+    var kw = topKeywords(list, 12), se = sentiment(list), sc = sentiColor(se.avg);
+    html += '<section class="catsec" id="sec-'+k+'" data-k="'+k+'">';
+    html += '<div class="cat-head"><span class="cat-pill" style="background:'+col+'">카테고리 '+c.num+'</span><span class="cat-title">'+c.name+'</span><span class="cat-count">'+list.length+'건</span>';
+    html += '<span class="senti" style="color:'+sc.c+';background:'+sc.b+'">'+se.label+(se.avg!==null?' · 추천의향 <span class="rec">'+se.avg.toFixed(1)+'</span>/10':'')+'</span></div>';
+    if (kw.length) {
+      html += '<div class="kw"><span class="kwlab">자주 나온 말</span>' + kw.map(function(x){ return '<span class="k">'+esc(x.w)+'<b>'+x.n+'</b></span>'; }).join("") + '</div>';
+    }
+    html += list.map(function(it){
+      return '<div class="rev" data-t="'+esc(it.t).replace(/"/g,"&quot;")+'">'
+        + '<div class="rev-meta"><span class="rev-date">6/'+it.d+'</span><span class="rev-scores">'+scoreBadges(it.s)+'</span></div>'
+        + '<div class="rev-text">'+esc(it.t)+'</div></div>';
+    }).join("");
+    html += '</section>';
+  });
+  var cats = document.getElementById("cats");
+  cats.innerHTML = html + '<div class="empty" id="noresult" style="display:none">검색 결과가 없습니다.</div>';
+
+  // chip filter
+  var activeK = "all";
+  Array.prototype.forEach.call(document.querySelectorAll(".chip"), function(btn){
+    btn.addEventListener("click", function(){
+      Array.prototype.forEach.call(document.querySelectorAll(".chip"), function(b){ b.classList.remove("active"); });
+      btn.classList.add("active"); activeK = btn.getAttribute("data-k"); apply();
+      if (activeK!=="all"){ var el=document.getElementById("sec-"+activeK); if(el) el.scrollIntoView({block:"start"}); }
+    });
+  });
+  // search
+  var q = document.getElementById("q");
+  q.addEventListener("input", apply);
+  function apply(){
+    var term = q.value.trim().toLowerCase();
+    var anyShown = false;
+    Array.prototype.forEach.call(document.querySelectorAll(".catsec"), function(sec){
+      var k = sec.getAttribute("data-k");
+      if (activeK!=="all" && k!==activeK){ sec.style.display="none"; return; }
+      var shownInSec = 0;
+      Array.prototype.forEach.call(sec.querySelectorAll(".rev"), function(rev){
+        var txt = rev.getAttribute("data-t").toLowerCase();
+        var hit = !term || txt.indexOf(term)>=0;
+        rev.style.display = hit ? "" : "none";
+        if (hit) shownInSec++;
+        // highlight
+        var te = rev.querySelector(".rev-text");
+        var raw = rev.getAttribute("data-t");
+        if (term && hit){ var re = new RegExp("("+term.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","ig"); te.innerHTML = raw.replace(/[&<>]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[m];}).replace(re,"<mark>$1</mark>"); }
+        else { te.textContent = raw; }
+      });
+      sec.style.display = shownInSec>0 ? "" : "none";
+      if (shownInSec>0) anyShown = true;
+    });
+    document.getElementById("noresult").style.display = anyShown ? "none" : "";
+  }
+})();
+</script>
+</body>
+</html>
