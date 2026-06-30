@@ -779,13 +779,11 @@
 <script>
 (function () {
   "use strict";
-  var D = window.VOC_DATA, R = window.VOC_RAW;
-  if (!R || !R.byCat) return;
+  var D = window.VOC_DATA;
+  var SHEET_ID = "1hKPWoOHCAAHwoKdSR6hNLdPKXXWne0mM83AbKh0Sbq0";
+  var SHEET_CSV = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:csv";
   function cat(key){ return D.categories.find(function(c){return c.key===key;}); }
   function catVar(k){ return "var(--"+k+")"; }
-
-  var mn = document.getElementById("rv-meta");
-  if (mn) mn.textContent = "기간 " + R.meta.period + " · 총 " + R.meta.total + "건 (분류 확정분 · 고객번호 제외)";
 
   var STOP = ("너무 좀 정말 진짜 그냥 같아요 같습니다 있어요 있습니다 합니다 해주세요 했어요 하는 하고 그리고 근데 좋겠어요 좋겠습니다 좋아요 좋았어요 입니다 거의 그게 이게 저게 우리 제가 저는 너무너무 했는데 하는데 되는 되요 돼요 한번 다시 항상 자주 계속 그런 이런 저런 어떤 무슨 정도 부분 경우 때문 통해 위해 대한 라고 하지 면서 으로 에서 에게 한테 까지 부터 보다 처럼 만큼 그리 매우 아주 조금 많이 빨리 다들 모두 거나 이나 이랑 또는 그래서 하지만 그런데 근처 오늘 어제 이번 지난 그때").split(/\s+/);
   var STOPSET = {}; STOP.forEach(function(s){ STOPSET[s]=1; });
@@ -826,6 +824,10 @@
     return out;
   }
 
+  function render(R, src) {
+    if (!R || !R.byCat) return;
+    var mn = document.getElementById("rv-meta");
+    if (mn) mn.textContent = "기간 " + R.meta.period + " · 총 " + R.meta.total + "건 · " + src + " (고객번호 제외)";
   var CAP = 5;
   var order = Object.keys(R.byCat).filter(function(k){ return R.byCat[k] && R.byCat[k].length; })
     .sort(function(a,b){ return R.byCat[b].length - R.byCat[a].length; });
@@ -888,6 +890,55 @@
     });
     document.getElementById("rv-noresult").style.display = anyShown ? "none" : "";
   }
+  } /* /render */
+
+  /* ── 데이터 소스: 구글시트 라이브 우선, 실패 시 voc-raw.js 스냅샷 폴백 ── */
+  function parseCSV(text){
+    var rows=[], row=[], cur="", q=false, i=0, c;
+    for(; i<text.length; i++){ c=text[i];
+      if(q){ if(c=='"'){ if(text[i+1]=='"'){ cur+='"'; i++; } else q=false; } else cur+=c; }
+      else { if(c=='"') q=true; else if(c==',') { row.push(cur); cur=""; }
+        else if(c=='\n'){ row.push(cur); rows.push(row); row=[]; cur=""; }
+        else if(c!='\r') cur+=c; }
+    }
+    if(cur!=="" || row.length){ row.push(cur); rows.push(row); }
+    return rows;
+  }
+  function pdate(s){ s=(s||"").trim();
+    var m=s.match(/Date\((\d+),(\d+),(\d+)/);
+    if(m){ var mo=("0"+(+m[2]+1)).slice(-2); return { ym:m[1]+"-"+mo, d:+m[3] }; }
+    var p=s.split("-"); if(p.length>=3) return { ym:p[0]+"-"+p[1], d:parseInt(p[2],10) };
+    return null;
+  }
+  function buildFromRows(rows){
+    var byCat={}, total=0, dates=[];
+    for(var i=1; i<rows.length; i++){ var r=rows[i]; if(!r || r.length<4) continue;
+      var dt=pdate(r[0]), catk=(r[1]||"").trim(), t=(r[3]||"").trim();
+      if(!dt || !catk || !t) continue;
+      var s={ rec:(r[4]||"").trim(), app:(r[5]||"").trim(), fee:(r[6]||"").trim(), cln:(r[7]||"").trim(), fix:(r[8]||"").trim(), gz:(r[9]||"").trim() };
+      (byCat[catk]=byCat[catk]||[]).push({ ym:dt.ym, d:dt.d, t:t, s:s }); total++;
+      dates.push(dt.ym+"-"+("0"+dt.d).slice(-2));
+    }
+    dates.sort();
+    var per = dates.length ? (dates[0]+"~"+dates[dates.length-1].slice(8)) : "";
+    return { meta:{ total:total, period:per }, byCat:byCat };
+  }
+  function loadSheet(){
+    var ctrl = ("AbortController" in window) ? new AbortController() : null;
+    var to = ctrl ? setTimeout(function(){ ctrl.abort(); }, 6000) : null;
+    return fetch(SHEET_CSV, ctrl ? { signal:ctrl.signal } : {}).then(function(res){
+      if(to) clearTimeout(to);
+      if(!res.ok) throw new Error("http " + res.status);
+      return res.text();
+    }).then(function(txt){
+      var R = buildFromRows(parseCSV(txt));
+      if(!R.byCat || !Object.keys(R.byCat).length) throw new Error("empty");
+      return R;
+    });
+  }
+  loadSheet()
+    .then(function(R){ render(R, "라이브 시트"); })
+    .catch(function(){ render(window.VOC_RAW, "스냅샷"); });
 })();
 </script>
 </body>
