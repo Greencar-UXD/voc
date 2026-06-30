@@ -222,6 +222,9 @@
   details.plain { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
   details.plain > summary { list-style: none; cursor: pointer; padding: 14px 18px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px; }
   details.plain > summary::-webkit-details-marker { display: none; }
+  details.plain > summary:hover { background: var(--hover); }
+  details.plain > summary .chev { margin-left: auto; }
+  details.plain[open] > summary .chev { transform: rotate(180deg); }
   details.plain[open] > summary { border-bottom: 1px solid var(--line-2); }
   details.plain .p-body { padding: 6px 18px 16px; }
   details.plain ul { margin: 8px 0 0; padding-left: 18px; }
@@ -363,7 +366,7 @@
 
   <!-- 처음 보세요? (온보딩 + 용어 풀이) -->
   <details class="plain" id="onboard" style="margin-bottom:16px">
-    <summary>📖 이 대시보드는? — 무엇을 다루고, 무엇은 안 다루나</summary>
+    <summary>📖 이 대시보드는? — 무엇을 다루고, 무엇은 안 다루나<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></summary>
     <div class="p-body" id="onboard-body"></div>
   </details>
 
@@ -456,7 +459,7 @@
   <section id="sec-limit">
     <div class="s-head"><h2>이 숫자를 어디까지 믿어야 하나</h2><span class="h-meta">데이터 한계</span></div>
     <details class="plain" id="limit-details">
-      <summary><span id="limit-summary"></span></summary>
+      <summary><span id="limit-summary"></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></summary>
       <div class="p-body"><ul id="limitations"></ul></div>
     </details>
   </section>
@@ -770,7 +773,7 @@
     '</div>';
 
   /* ── 데이터 한계 ── */
-  document.getElementById("limit-summary").innerHTML = "이 숫자를 읽을 때 주의할 점 " + D.limitations.length + "가지 <span style='color:var(--ink-3);font-weight:400'>(핵심: 시기끼리 비교 금지 · 비율 아닌 건수로 해석) — 펼쳐 보기</span>";
+  document.getElementById("limit-summary").innerHTML = "이 숫자를 읽을 때 주의할 점 " + D.limitations.length + "가지 <span style='color:var(--ink-3);font-weight:400'>(핵심: 시기끼리 비교 금지 · 비율 아닌 건수로 해석)</span>";
   document.getElementById("limitations").innerHTML = D.limitations.map(function (t) { return '<li><span class="badge fact">사실</span>' + t + "</li>"; }).join("");
 })();
 </script>
